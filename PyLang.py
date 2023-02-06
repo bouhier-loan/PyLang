@@ -503,7 +503,7 @@ class ListNode:
 
         self.pos_start = pos_start
         self.pos_end = pos_end
-        
+
 #####################
 # ! PARSER RESULT ! #
 #####################
@@ -1175,7 +1175,7 @@ class List(Value):
     def multiply(self, other : Number) -> tuple[List, RTError]:
         if isinstance(other, Number):
             new_list = self.copy()
-            new_list.elements * other.value
+            new_list.elements *= other.value
             return new_list, None
         return None, Value.illegal_operation(self, other)
     
