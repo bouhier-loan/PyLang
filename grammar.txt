@@ -6,7 +6,7 @@ comp-expr   : NOT comp-expr
 
 arith-expr  : term ((PLUS|MINUS) term)*
 
-term        : factor ((MUL|DIV) factor)*
+term        : factor ((MUL|DIV|QUO|MOD) factor)*
 
 factor      : (PLUS|MINUS) factor
             : power
@@ -15,12 +15,15 @@ power       : call (POW factor)*
 
 call        : atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
 
-atom        : INT|FLOAT|IDENTIFIER
+atom        : INT|FLOAT|STRING|IDENTIFIER
             : LPAREN expr RPAREN
             : if-expr
             : for-expr
             : while-expr
+            : list-expr
             : func-def
+
+list-expr   : LSBRACKET (expr (COMMA expr)*)? RSBRACKET
 
 if-expr     : KEYWORD:if expr KEYWORD:then expr
             : (KEYWORD:elif expr KEYWORD:then expr)*

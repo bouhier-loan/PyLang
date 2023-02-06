@@ -1,72 +1,5 @@
 from __future__ import annotations
-import ArrowsOnString as aos
-import string
-
-#################
-# ! CONSTANTS ! #
-#################
-
-# LETTERS & DIGITS
-DIGITS          = '0123456789'
-LETTERS         = string.ascii_letters
-LETTERS_DIGITS  = LETTERS + DIGITS
-
-# KEYWORDS & =
-TT_IDENTIFIER   = 'IDENTIFIER'
-TT_KEYWORD      = 'KEYWORD'
-TT_EQ           = 'EQ'
-
-# VALUES TYPE
-TT_INT          = 'INT'
-TT_FLOAT        = 'FLOAT'
-
-# OPERATORS
-TT_PLUS         = 'PLUS'
-TT_MINUS        = 'MINUS'
-TT_MUL          = 'MUL'
-TT_DIV          = 'DIV'
-TT_POW          = 'POW'
-TT_QUO          = 'QUO'
-TT_MOD          = 'MOD'
-
-# PARENTHESES
-TT_LPAREN       = 'LPAREN'
-TT_RPAREN       = 'RPAREN'
-
-# SEPARATORS
-
-TT_COMMA        = 'COMMA'
-TT_COLON        = 'COLON'
-
-# COMPARISON OPERATORS
-TT_EE           = 'EE'
-TT_NE           = 'NE'
-TT_LT           = 'LT'
-TT_GT           = 'GT'
-TT_LTE          = 'LTE'
-TT_GTE          = 'GTE'
-
-TT_NOT          = 'NOT'
-TT_AND          = 'AND'
-TT_OR           = 'OR'
-
-# END OF FILE
-TT_EOF          = 'EOF'
-
-# KEYWORDS LIST
-
-KEYWORDS = [
-    'var',
-    'if',
-    'then',
-    'elif',
-    'else',
-    'for',
-    'to',
-    'step',
-    'while',
-    'func',
-]
+from Constants import *
 
 ################
 # ! POSITION ! #
@@ -132,6 +65,33 @@ class Context:
 # ! ERRORS ! #
 ##############
 
+def arrows_on_strings(text : str, pos_start, pos_end):
+    result = ''
+
+    # Calculate indices
+    idx_start = max(text.rfind('\n', 0, pos_start.index), 0)
+    idx_end = text.find('\n', idx_start + 1)
+    if idx_end < 0: idx_end = len(text)
+    
+    # Generate each line
+    line_count = pos_end.line - pos_start.line + 1
+    for i in range(line_count):
+        # Calculate line columns
+        line = text[idx_start:idx_end]
+        col_start = pos_start.column if i == 0 else 0
+        col_end = pos_end.column if i == line_count - 1 else len(line) - 1
+
+        # Append to result
+        result += line + '\n'
+        result += ' ' * col_start + '^' * (col_end - col_start)
+
+        # Re-calculate indices
+        idx_start = idx_end
+        idx_end = text.find('\n', idx_start + 1)
+        if idx_end < 0: idx_end = len(text)
+
+    return result.replace('\t', '')
+
 class Error:
     def __init__(self, pos_start : Position, pos_end : Position, error_name : str, details : str) -> None:
         self.pos_start = pos_start
@@ -142,7 +102,7 @@ class Error:
     def __repr__(self) -> str:
         result  = f'{self.error_name}: {self.details}\n'
         result += f'File {self.pos_start.file_name}, line {self.pos_start.line + 1}'
-        result += '\n\n' + aos.arrows_on_strings(self.pos_start.file_text, self.pos_start, self.pos_end)
+        result += '\n\n' + arrows_on_strings(self.pos_start.file_text, self.pos_start, self.pos_end)
         return result
 
 class IllegalCharError(Error):
@@ -165,7 +125,7 @@ class RTError(Error):
     def __repr__(self) -> str:
         result = self.generate_traceback()
         result += f'{self.error_name}: {self.details}\n'
-        result += '\n\n' + aos.arrows_on_strings(self.pos_start.file_text, self.pos_start, self.pos_end)
+        result += '\n\n' + arrows_on_strings(self.pos_start.file_text, self.pos_start, self.pos_end)
         return result
 
     def generate_traceback(self) -> str:
@@ -231,6 +191,8 @@ class Lexer:
             ',' : TT_COMMA,
             ':' : TT_COLON,
             '%' : TT_MOD,
+            '[' : TT_LSBRACKET,
+            ']' : TT_RSBRACKET,
             }
 
         while self.current_char != None:
@@ -265,6 +227,8 @@ class Lexer:
                 tokens.append(self.make_multiply())
             elif self.current_char == '/':
                 tokens.append(self.make_divide())
+            elif self.current_char == '"':
+                tokens.append(self.make_string())
 
             else:
                 pos_start = self.pos.copy()
@@ -392,6 +356,32 @@ class Lexer:
         self.advance()
         return None, ExpectedCharError(pos_start, self.pos, "'|' (after '|')")
     
+    def make_string(self) -> Token:
+        string = ''
+        escape_character = False
+
+        pos_start = self.pos.copy()
+
+        self.advance()
+        while self.current_char is not None and (self.current_char != '"' or escape_character):
+            if escape_character:
+                if self.current_char == 't':
+                    string += '\t'
+                elif self.current_char == 'n':
+                    string += '\n'
+                else:
+                    string += self.current_char
+            else:
+                if self.current_char == '\\':
+                    escape_character = True
+                else:
+                    string += self.current_char
+            self.advance()
+            escape_character = False
+        
+        self.advance()
+    
+        return Token(TT_STRING, string, pos_start, self.pos)
 #############
 # ! NODES ! #
 #############
@@ -406,6 +396,15 @@ class NumberNode:
     def __repr__(self) -> str:
         return f'{self.token}'
 
+class StringNode:
+    def __init__(self, token : Token) -> None:
+        self.token = token
+
+        self.pos_start = self.token.pos_start
+        self.pos_end = self.token.pos_end
+    
+    def __repr__(self) -> str:
+        return f'{self.token}'
 class BinOpNode:
     def __init__(self, left_node, op_token : Token, right_node) -> None:
         self.left_node = left_node
@@ -498,6 +497,13 @@ class CallNode:
         else:
             self.pos_end = name_node.pos_end
 
+class ListNode:
+    def __init__(self, elements_nodes, pos_start, pos_end) -> None:
+        self.elements_nodes = elements_nodes
+
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+        
 #####################
 # ! PARSER RESULT ! #
 #####################
@@ -552,6 +558,50 @@ class Parser:
         return result
 
 ########
+
+    def list_expr(self) -> ParseResult:
+        result = ParseResult()
+        element_nodes = []
+
+        pos_start = self.current_token.pos_start.copy()
+
+        if not self.current_token.type == TT_LSBRACKET:
+            return result.failure(InvalidSyntaxError(
+                self.current_token.pos_start, self.current_token.pos_end,
+                f"Expected '['"
+            ))
+        
+        result.register_advance()
+        self.advance()
+
+        if self.current_token.type == TT_RSBRACKET:
+            result.register_advance()
+            self.advance()
+        else:
+            element_nodes.append(result.register(self.expression()))
+            if result.error:
+                return result.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "Expected ']', 'var', 'if', 'for', 'while', 'func', INT, FLOAT, IDENTIFIER, '+', '-', '(' or '!'"
+                ))
+            
+            while self.current_token.type == TT_COMMA:
+                result.register_advance()
+                self.advance()
+
+                element_nodes.append(result.register(self.expression()))
+                if result.error: return result
+            
+            if self.current_token.type != TT_RSBRACKET:
+                return result.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "Expected ',' or ']'"
+                ))
+            
+            result.register_advance()
+            self.advance()
+            
+        return result.success(ListNode(element_nodes, pos_start, self.current_token.pos_end.copy()))  
 
     def if_expr(self) -> ParseResult:
         result = ParseResult()
@@ -852,6 +902,11 @@ class Parser:
             self.advance()
             return result.success(NumberNode(token))
         
+        if token.type == TT_STRING:
+            result.register_advance()
+            self.advance()
+            return result.success(StringNode(token))
+        
         elif token.type == TT_IDENTIFIER:
             result.register_advance()
             self.advance()
@@ -871,6 +926,10 @@ class Parser:
                     token.pos_start, token.pos_end,
                     "Expected ')'"
                 ))
+        elif token.type == TT_LSBRACKET:
+            list_expr = result.register(self.list_expr())
+            if result.error: return result
+            return result.success(list_expr)
         
         elif token.matches(TT_KEYWORD, "if"):
             if_expr = result.register(self.if_expr())
@@ -1103,8 +1162,94 @@ class Value:
             self.context
         )
 
+class List(Value):
+    def __init__(self, elements : list) -> None:
+        super().__init__()
+        self.elements = elements
+    
+    def append(self, other : Value) -> tuple[List, RTError]:
+        new_list = self.copy()
+        new_list.elements.append(other)
+        return new_list, None
+    
+    def multiply(self, other : Number) -> tuple[List, RTError]:
+        if isinstance(other, Number):
+            new_list = self.copy()
+            new_list.elements * other.value
+            return new_list, None
+        return None, Value.illegal_operation(self, other)
+    
+    def add(self, other : List) -> tuple[List, RTError]:
+        if isinstance(other, List):
+            new_list = self.copy()
+            new_list.elements.extend(other.elements)
+            return new_list, None
+        return None, Value.illegal_operation(self, other)
+    
+    def delete(self, other : Number) -> tuple[List, RTError]:
+        if isinstance(other, Number):
+            new_list = self.copy()
+            try:
+                new_list.elements.pop(other.value)
+                return new_list, None
+            except:
+                return None, RTError(
+                    other.pos_start, other.pos_end,
+                    "Element at this index could not be removed from list because index is out of bounds",
+                    self.context
+                )
+
+        return None, Value.illegal_operation(self, other)
+    
+    def get(self, other : Number) -> tuple[Value, RTError]:
+        if isinstance(other, Number):
+            try:
+                return self.elements[other.value], None
+            except:
+                return None, RTError(
+                    other.pos_start, other.pos_end,
+                    "Element at this index could not be retrieved from list because index is out of bounds",
+                    self.context
+                )
+        return None, Value.illegal_operation(self, other)
+    
+    def copy(self) -> List:
+        copy = List(self.elements[:])
+        copy.set_pos(self.pos_start, self.pos_end)
+        copy.set_context(self.context)
+        return copy
+    
+    def __repr__(self) -> str:
+        return f'[{", ".join([str(element) for element in self.elements])}]'
+
+class String(Value):
+    def __init__(self, value : str) -> None:
+        super.__init__()
+        self.value = value
+
+    def add(self, other : String) -> tuple[String, RTError]:
+        if isinstance(other, String):
+            return String(self.value + other.value).set_context(self.context), None
+        return None, Value.illegal_operation(self, other)
+    
+    def multiply(self, other : Number) -> tuple[String, RTError]:
+        if isinstance(other, Number):
+            return String(self.value * other.value).set_context(self.context), None
+        return None, Value.illegal_operation(self, other)
+    
+    def is_true(self) -> bool:
+        return len(self.value) > 0
+    
+    def copy(self) -> String:
+        copy = String(self.value)
+        copy.set_pos(self.pos_start, self.pos_end)
+        copy.set_context(self.context)
+        return copy
+    
+    def __repr__(self) -> str:
+        return f'"{self.value}"'
 class Number(Value):
-    def __init__(self, value) -> None:
+    def __init__(self, value : int | float) -> None:
         self.value = value
         self.set_pos()
         self.set_context()
@@ -1307,6 +1452,23 @@ class Interpreter:
             Number(node.token.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
     
+    def visit_StringNode(self, node : StringNode, context : Context) -> RTResult:
+        return RTResult().success(
+            String(node.token.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
+    
+    def visit_ListNode(self, node : ListNode, context : Context) -> RTResult:
+        result = RTResult()
+        elements = []
+
+        for element_node in node.elements_nodes:
+            elements.append(result.register(self.visit(element_node, context)))
+            if result.error: return result
+        
+        return result.success(
+            List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
+    
     def visit_BinOpNode(self, node : BinOpNode, context : Context) -> RTResult:
         result = RTResult()
         left = result.register(self.visit(node.left_node, context))
@@ -1395,6 +1557,7 @@ class Interpreter:
     
     def visit_ForNode(self, node : ForNode, context : Context) -> RTResult:
         result = RTResult()
+        elements = []
 
         start_value = result.register(self.visit(node.start_value_node, context))
         if result.error: return result
@@ -1419,13 +1582,16 @@ class Interpreter:
             context.symbol_table.set(node.var_name_token.value, Number(i))
             i += step_value.value
 
-            result.register(self.visit(node.body_node, context))
+            elements.append(result.register(self.visit(node.body_node, context)))
             if result.error: return result
         
-        return result.success(None)
+        return result.success(
+            List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
 
     def visit_WhileNode(self, node : WhileNode, context : Context) -> RTResult:
         result = RTResult()
+        elements = []
 
         while True:
             condition = result.register(self.visit(node.condition_node, context))
@@ -1433,10 +1599,12 @@ class Interpreter:
 
             if not condition.is_true(): break
 
-            result.register(self.visit(node.body_node, context))
+            elements.append(result.register(self.visit(node.body_node, context)))
             if result.error: return result
 
-        return result.success(None)
+        return result.success(
+            List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
 
     def visit_FuncDefNode(self, node : FuncDefNode, context : Context) -> RTResult:
         result = RTResult()
