@@ -26,6 +26,8 @@ TT_MINUS        = 'MINUS'
 TT_MUL          = 'MUL'
 TT_DIV          = 'DIV'
 TT_POW          = 'POW'
+TT_QUO          = 'QUO'
+TT_MOD          = 'MOD'
 
 # PARENTHESES
 TT_LPAREN       = 'LPAREN'
@@ -224,11 +226,11 @@ class Lexer:
         symbols = {
             '+' : TT_PLUS,
             '-' : TT_MINUS,
-            '/' : TT_DIV, 
             '(' : TT_LPAREN, 
             ')' : TT_RPAREN,
             ',' : TT_COMMA,
             ':' : TT_COLON,
+            '%' : TT_MOD,
             }
 
         while self.current_char != None:
@@ -261,6 +263,8 @@ class Lexer:
                 tokens.append(self.make_greater_than())
             elif self.current_char == '*':
                 tokens.append(self.make_multiply())
+            elif self.current_char == '/':
+                tokens.append(self.make_divide())
 
             else:
                 pos_start = self.pos.copy()
@@ -354,6 +358,17 @@ class Lexer:
         if self.current_char == '*':
             self.advance()
             token_type = TT_POW
+        
+        return Token(token_type, pos_start=pos_start, pos_end=self.pos)
+    
+    def make_divide(self) -> Token:
+        token_type = TT_DIV
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '/':
+            self.advance()
+            token_type = TT_QUO
         
         return Token(token_type, pos_start=pos_start, pos_end=self.pos)
 
@@ -532,7 +547,7 @@ class Parser:
         if not result.error and self.current_token.type != TT_EOF:
             return result.failure(InvalidSyntaxError(
                 self.current_token.pos_start, self.current_token.pos_end,
-                "Expected '+', '-', '*', '/', '**', '==', '!=', '<', '>', <=', '>=', '&&' or '||'"
+                "Expected '+', '-', '*', '/', '%', '//', '**', '==', '!=', '<', '>', <=', '>=', '&&' or '||'"
             ))
         return result
 
@@ -726,13 +741,13 @@ class Parser:
                     self.current_token.pos_start, self.current_token.pos_end,
                     f"Expected '('"
                 ))
-            else:
-                func_name_token = None
-                if self.current_token.type != TT_LPAREN:
-                    return result.failure(InvalidSyntaxError(
-                        self.current_token.pos_start, self.current_token.pos_end,
-                        f"Expected IDENTIFIER or '('"
-                    ))
+        else:
+            func_name_token = None
+            if self.current_token.type != TT_LPAREN:
+                return result.failure(InvalidSyntaxError(
+                    self.current_token.pos_start, self.current_token.pos_end,
+                    f"Expected IDENTIFIER or '('"
+                ))
 
         result.register_advance()
         self.advance()
@@ -899,7 +914,7 @@ class Parser:
         return self.power()
 
     def term(self) -> BinOpNode:
-        return self.bin_operator(self.factor, (TT_MUL, TT_DIV))
+        return self.bin_operator(self.factor, (TT_MUL, TT_DIV, TT_MOD, TT_QUO))
     
     def arith_expr(self) -> BinOpNode:
         return self.bin_operator(self.term, (TT_PLUS, TT_MINUS))
@@ -1037,6 +1052,12 @@ class Value:
     
     def divide(self, other : Number) -> tuple[Number, RTError]:
         return None, self.illegal_operation()
+    
+    def modulo(self, other : Number) -> tuple[Number, RTError]:
+        return None, self.illegal_operation()
+    
+    def quotient(self, other : Number) -> tuple[Number, RTError]:
+        return None, self.illegal_operation()
         
     def power(self, other) -> tuple[Number, RTError]:
         return None, self.illegal_operation()
@@ -1124,6 +1145,30 @@ class Number(Value):
                     self.context
                 )
             return Number(self.value / other.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self.pos_start, other.pos_end)
+    
+    def modulo(self, other : Number) -> tuple[Number, RTError]:
+        if isinstance(other, Number):
+            if other.value == 0:
+                return None, RTError(
+                    other.pos_start, other.pos_end,
+                    "Division by zero",
+                    self.context
+                )
+            return Number(self.value % other.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self.pos_start, other.pos_end)
+    
+    def quotient(self, other : Number) -> tuple[Number, RTError]:
+        if isinstance(other, Number):
+            if other.value == 0:
+                return None, RTError(
+                    other.pos_start, other.pos_end,
+                    "Division by zero",
+                    self.context
+                )
+            return Number(self.value // other.value).set_context(self.context), None
         else:
             return None, Value.illegal_operation(self.pos_start, other.pos_end)
         
@@ -1275,6 +1320,8 @@ class Interpreter:
             TT_MUL      : left.multiply, 
             TT_DIV      : left.divide, 
             TT_POW      : left.power,
+            TT_MOD      : left.modulo,
+            TT_QUO      : left.quotient,
             TT_EE       : left.get_comparison_eq,
             TT_NE       : left.get_comparison_ne,
             TT_LT       : left.get_comparison_lt,
