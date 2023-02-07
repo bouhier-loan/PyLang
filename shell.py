@@ -6,4 +6,4 @@ while True:
     result, error = pl.run('<stdin>', text)
 
     if error: print(error)
-    elif result: print(result)
+    elif result: print(repr(result))
