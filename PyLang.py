@@ -1677,6 +1677,28 @@ class BuiltInFunction(BaseFunction):
             ))
     execute_len.arg_names = ["value"]
 
+    def execute_sum(self, exec_context : Context) -> RTResult:
+        list = exec_context.symbol_table.get('list')
+
+        if not isinstance(list, List):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Argument must be LIST",
+                exec_context
+            ))
+        return_value = 0
+        for element in list.elements:
+            if not isinstance(element, Number):
+                return RTResult().failure(RTError(
+                    self.pos_start, self.pos_end,
+                    "Elements of list must be INT or FLOAT",
+                    exec_context
+                ))
+            return_value += element.value
+        return RTResult().success(Number(return_value))
+    execute_sum.arg_names = ["list"]
+
+
 BuiltInFunction.print               = BuiltInFunction("print")
 BuiltInFunction.string              = BuiltInFunction("string")
 BuiltInFunction.int                 = BuiltInFunction("int")
@@ -1692,7 +1714,9 @@ BuiltInFunction.pop                 = BuiltInFunction("pop")
 BuiltInFunction.get                 = BuiltInFunction("get")
 BuiltInFunction.extend              = BuiltInFunction("extend")
 BuiltInFunction.sqrt                = BuiltInFunction("sqrt")
-BuiltInFunction.len                = BuiltInFunction("len")
+BuiltInFunction.len                 = BuiltInFunction("len")
+BuiltInFunction.sum                 = BuiltInFunction("sum")
+
 
 ###################
 # ! INTERPRETER ! #
@@ -1932,6 +1956,7 @@ global_symbol_table.set("get_value", BuiltInFunction.get)
 global_symbol_table.set("extend", BuiltInFunction.extend)
 global_symbol_table.set("sqrt", BuiltInFunction.sqrt)
 global_symbol_table.set("len", BuiltInFunction.len)
+global_symbol_table.set("sum", BuiltInFunction.sum)
 
 
 def run(file_name : str, text : str) -> tuple[Token, Error]:
