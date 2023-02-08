@@ -1,4 +1,5 @@
 import string
+from Values.Number import Number
 
 #################
 # ! CONSTANTS ! #
@@ -74,3 +75,8 @@ KEYWORDS = [
     'append',
     'delete',
 ]
+
+# Numbers
+Number.null = Number(0)
+Number.true = Number(1)
+Number.false = Number(0)
