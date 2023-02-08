@@ -1,7 +1,8 @@
 from __future__ import annotations
-from Constants import *
 import os
+import math
 
+from Constants import *
 ################
 # ! POSITION ! #
 ################
@@ -870,7 +871,7 @@ class Parser:
                 arg_nodes.append(result.register(self.expression()))
                 if result.error:
                     return result.failure(InvalidSyntaxError(
-						self.current_tok.pos_start, self.current_tok.pos_end,
+						self.current_token.pos_start, self.current_token.pos_end,
 						"Expected ')', 'var', 'if', 'for', 'while', 'func', INT, FLOAT, IDENTIFIER, '+', '-', '(' or '!'"
 					))
                 
@@ -1600,9 +1601,15 @@ class BuiltInFunction(BaseFunction):
                 "Second argument must be INT",
                 exec_context
             ))
+        try:
+            return_value = list.elements[value.value]
+        except:
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Element at this index could not be removed from list because index is out of range",
+                exec_context
+            ))
         
-        return_value = list.elements[value.value]
-
         return RTResult().success(return_value)
     execute_get.arg_names = ["list", "value"]
 
@@ -1629,6 +1636,46 @@ class BuiltInFunction(BaseFunction):
         return RTResult().success(Number.null)
     execute_extend.arg_names = ["list1", "list2"]
 
+    def execute_sqrt(self, exec_context : Context) -> RTResult:
+        value = exec_context.symbol_table.get('value')
+
+        if not isinstance(value, Number):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "First argument must be INT or FLOAT",
+                exec_context
+            ))
+
+        try:
+            return_value = math.sqrt(value.value)
+        except:
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Math domain error: positive number expected",
+                exec_context
+            ))
+        
+        return RTResult().success(Number(return_value))
+    execute_sqrt.arg_names = ["value"]
+
+    def execute_len(self, exec_context : Context) -> RTResult:
+        value = exec_context.symbol_table.get('value')
+
+        if isinstance(value, List):
+            return_value = len(value.elements)
+            return RTResult().success(Number(return_value))
+
+        
+        elif isinstance(value, String):
+            return_value = len(value.value)
+            return RTResult().success(Number(return_value))
+    
+        return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Argument must be LIST or STRING",
+                exec_context
+            ))
+    execute_len.arg_names = ["value"]
 
 BuiltInFunction.print               = BuiltInFunction("print")
 BuiltInFunction.string              = BuiltInFunction("string")
@@ -1644,6 +1691,8 @@ BuiltInFunction.append              = BuiltInFunction("append")
 BuiltInFunction.pop                 = BuiltInFunction("pop")
 BuiltInFunction.get                 = BuiltInFunction("get")
 BuiltInFunction.extend              = BuiltInFunction("extend")
+BuiltInFunction.sqrt                = BuiltInFunction("sqrt")
+BuiltInFunction.len                = BuiltInFunction("len")
 
 ###################
 # ! INTERPRETER ! #
@@ -1881,6 +1930,8 @@ global_symbol_table.set("append", BuiltInFunction.append)
 global_symbol_table.set("pop", BuiltInFunction.pop)
 global_symbol_table.set("get_value", BuiltInFunction.get)
 global_symbol_table.set("extend", BuiltInFunction.extend)
+global_symbol_table.set("sqrt", BuiltInFunction.sqrt)
+global_symbol_table.set("len", BuiltInFunction.len)
 
 
 def run(file_name : str, text : str) -> tuple[Token, Error]:
