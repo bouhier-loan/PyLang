@@ -1,7 +1,7 @@
 from __future__ import annotations
 from Errors.RunTimeError import RTError
-from Number import Number
-from Value import Value
+from Values.Number import Number
+from Values.Value import Value
 
 class String(Value):
     def __init__(self, value : str) -> None:

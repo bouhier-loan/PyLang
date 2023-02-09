@@ -1,4 +1,4 @@
-from BinOp import BinOpNode
+from Nodes.BinOp import BinOpNode
 
 class CallNode:
     def __init__(self, name_node, args_nodes : list[BinOpNode]) -> None:

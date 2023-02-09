@@ -1,4 +1,4 @@
-from Token import Token
+from Utils.Token import Token
 
 class StringNode:
     def __init__(self, token : Token) -> None:

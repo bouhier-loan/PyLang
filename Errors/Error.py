@@ -1,4 +1,4 @@
-from Position import Position
+from Utils.Position import Position
 ##############
 # ! ERRORS ! #
 ##############

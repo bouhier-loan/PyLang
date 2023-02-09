@@ -1,8 +1,7 @@
 from __future__ import annotations
 from Errors.RunTimeError import RTError
-from Position import Position
-from Context import Context
-from Nodes.Number import Number
+from Utils.Position import Position
+from Utils.Context import Context
 
 ##############
 # ! VALUES ! #
@@ -22,55 +21,55 @@ class Value:
         self.context = context
         return self
     
-    def add(self, other : Number) -> tuple[Number, RTError]:
+    def add(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def subtract(self, other : Number) -> tuple[Number, RTError]:
+    def subtract(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def multiply(self, other : Number) -> tuple[Number, RTError]:
+    def multiply(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def divide(self, other : Number) -> tuple[Number, RTError]:
+    def divide(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def modulo(self, other : Number) -> tuple[Number, RTError]:
+    def modulo(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def quotient(self, other : Number) -> tuple[Number, RTError]:
+    def quotient(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
         
-    def power(self, other) -> tuple[Number, RTError]:
+    def power(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
     def copy(self) -> Exception:
         raise Exception("No copy method defined")
     
-    def get_comparison_eq(self, other) -> tuple[Number, RTError]:
+    def get_comparison_eq(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def get_comparison_ne(self, other) -> tuple[Number, RTError]:
+    def get_comparison_ne(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def get_comparison_lt(self, other) -> tuple[Number, RTError]:
+    def get_comparison_lt(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def get_comparison_gt(self, other) -> tuple[Number, RTError]:
+    def get_comparison_gt(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def get_comparison_lte(self, other) -> tuple[Number, RTError]:
+    def get_comparison_lte(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def get_comparison_gte(self, other) -> tuple[Number, RTError]:
+    def get_comparison_gte(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def get_and(self, other) -> tuple[Number, RTError]:
+    def get_and(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
         
-    def get_or(self, other) -> tuple[Number, RTError]:
+    def get_or(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
-    def not_comp(self) -> tuple[Number, RTError]:
+    def not_comp(self) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
     def is_true(self) -> bool:

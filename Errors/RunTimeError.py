@@ -1,6 +1,6 @@
-from Error import Error, arrows_on_strings
-from Position import Position
-from Context import Context
+from Errors.Error import Error, arrows_on_strings
+from Utils.Position import Position
+from Utils.Context import Context
 
 class RTError(Error):
     def __init__(self, pos_start : Position, pos_end : Position, details : str, context : Context) -> None:

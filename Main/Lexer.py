@@ -1,7 +1,9 @@
-from Position import Position
-from Token import Token
-from Error import IllegalCharError
-from Constants import *
+from Utils.Position import Position
+from Utils.Token import Token
+from Errors.Error import Error
+from Errors.IllegalCharError import IllegalCharError
+from Errors.ExpectedCharError import ExpectedCharError
+from Main.Constants import *
 #############
 # ! LEXER ! #
 #############

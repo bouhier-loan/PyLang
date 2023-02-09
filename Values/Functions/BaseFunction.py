@@ -1,9 +1,9 @@
-from Value import Value
-from Context import Context
+from Values.Value import Value
+from Utils.Context import Context
 from Errors.RunTimeError import RTError
-from RTResult import RTResult
-from Token import Token
-from SymbolTable import SymbolTable
+from Utils.RTResult import RTResult
+from Utils.Token import Token
+from Utils.SymbolTable import SymbolTable
 
 class BaseFunction(Value):
     def __init__(self, name : str) -> None:

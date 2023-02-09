@@ -1,8 +1,21 @@
-from Token import Token
-from Constants import *
-from Node import BinOpNode, ListNode, UnaryOpNode, IfNode, WhileNode, ForNode, FuncDefNode, CallNode, VarAccessNode, VarAssignNode, NumberNode, StringNode
-from ParseResult import ParseResult
-from Error import InvalidSyntaxError
+from Utils.Token import Token
+from Main.Constants import *
+from Utils.ParseResult import ParseResult
+from Errors.InvalidSyntaxError import InvalidSyntaxError
+
+from Nodes.BinOp import BinOpNode
+from Nodes.List import ListNode
+from Nodes.If import IfNode
+from Nodes.For import ForNode
+from Nodes.While import WhileNode
+from Nodes.FuncDef import FuncDefNode
+from Nodes.Call import CallNode
+from Nodes.Number import NumberNode
+from Nodes.String import StringNode
+from Nodes.UnaryOp import UnaryOpNode
+from Nodes.VarAccess import VarAccessNode
+from Nodes.VarAssign import VarAssignNode
+
 ##############
 # ! PARSER ! #
 ##############
@@ -19,14 +32,14 @@ class Parser:
             self.current_token = self.tokens[self.token_index]
         return self.current_token
     
-    def parse(self) -> BinOpNode:
+    def parse(self) -> ParseResult:
         result = self.expression()
         if not result.error and self.current_token.type != TT_EOF:
             return result.failure(InvalidSyntaxError(
                 self.current_token.pos_start, self.current_token.pos_end,
                 "Expected '+', '-', '*', '/', '%', '//', '**', '==', '!=', '<', '>', <=', '>=', '&&' or '||'"
             ))
-        return result
+        return result 
 
 ########
 
@@ -471,7 +484,7 @@ class Parser:
         return result.success(node)
 
 
-    def expression(self) -> BinOpNode:
+    def expression(self) -> ParseResult:
         result = ParseResult()
 
         if self.current_token.matches(TT_KEYWORD, 'var'):

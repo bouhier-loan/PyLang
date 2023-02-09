@@ -1,4 +1,4 @@
-from BinOp import BinOpNode
+from Nodes.BinOp import BinOpNode
 
 class WhileNode:
     def __init__(self, condition_node : BinOpNode, body_node : BinOpNode) -> None:

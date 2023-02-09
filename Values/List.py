@@ -1,8 +1,8 @@
 from __future__ import annotations
-from Value import Value
-from Token import Token
+from Values.Value import Value
+from Utils.Token import Token
 from Errors.RunTimeError import RTError
-from Nodes.Number import Number
+from Values.Number import Number
 
 
 class List(Value):

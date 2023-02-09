@@ -1,4 +1,4 @@
-from Token import Token
+from Utils.Token import Token
 
 class BinOpNode:
     def __init__(self, left_node, op_token : Token, right_node) -> None:

@@ -1,5 +1,5 @@
-from Token import Token
-from BinOp import BinOpNode
+from Utils.Token import Token
+from Nodes.BinOp import BinOpNode
 
 class FuncDefNode:
     def __init__(self, var_name_token : Token, arg_name_tokens : list[Token], body_node : BinOpNode) -> None:

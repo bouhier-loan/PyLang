@@ -1,4 +1,5 @@
-from Error import Error
+from __future__ import annotations
+from Errors.Error import Error
 ######################
 # ! RUNTIME RESULT ! #
 ######################

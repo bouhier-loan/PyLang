@@ -1,4 +1,4 @@
-from Token import Token
+from Utils.Token import Token
 
 class UnaryOpNode:
     def __init__(self, op_token, node) -> None:

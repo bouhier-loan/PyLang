@@ -1,4 +1,4 @@
-from Token import Token
+from Utils.Token import Token
 
 class VarAccessNode:
     def __init__(self, var_name_token : Token) -> None:

@@ -1,4 +1,4 @@
-from BinOp import BinOpNode
+from Nodes.BinOp import BinOpNode
 
 class IfNode:
     def __init__(self,cases : tuple[BinOpNode, BinOpNode], else_case : BinOpNode) -> None:

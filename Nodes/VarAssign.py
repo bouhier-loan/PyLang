@@ -1,10 +1,10 @@
-from Token import Token
-from BinOp import BinOpNode
-from UnaryOp import UnaryOpNode
-from Number import NumberNode
+from Utils.Token import Token
+from Nodes.BinOp import BinOpNode
+from Nodes.UnaryOp import UnaryOpNode
+from Nodes.Number import NumberNode
 
 class VarAssignNode:
-    def __init__(self, var_name_token : Token, value_node : BinOpNode | UnaryOpNode | NumberNode) -> None:
+    def __init__(self, var_name_token : Token, value_node) -> None:
         self.var_name_token = var_name_token
         self.value_node = value_node
 

@@ -1,9 +1,9 @@
 from __future__ import annotations
-from Token import Token
+from Utils.Token import Token
 from Nodes.BinOp import BinOpNode
-from Value import Value
-from RTResult import RTResult
-from Interpreter import Interpreter
+from Values.Value import Value
+from Utils.RTResult import RTResult
+from Main.Interpreter import Interpreter
 from BaseFunction import BaseFunction
 
 class Function(BaseFunction):
