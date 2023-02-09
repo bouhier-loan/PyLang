@@ -2,6 +2,7 @@ from __future__ import annotations
 from Position import Position
 from Errors.RunTimeError import RTError
 from Context import Context
+from Value import Value
 
 class Number(Value):
     def __init__(self, value : int | float) -> None:

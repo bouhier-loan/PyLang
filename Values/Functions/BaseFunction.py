@@ -3,6 +3,7 @@ from Context import Context
 from Errors.RunTimeError import RTError
 from RTResult import RTResult
 from Token import Token
+from SymbolTable import SymbolTable
 
 class BaseFunction(Value):
     def __init__(self, name : str) -> None:

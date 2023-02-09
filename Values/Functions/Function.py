@@ -1,9 +1,10 @@
 from __future__ import annotations
 from Token import Token
-from Node import BinOpNode
+from Nodes.BinOp import BinOpNode
 from Value import Value
 from RTResult import RTResult
 from Interpreter import Interpreter
+from BaseFunction import BaseFunction
 
 class Function(BaseFunction):
     def __init__(self, name : Token, body_node : BinOpNode, arg_names : list[Token]) -> None:

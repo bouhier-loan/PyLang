@@ -2,6 +2,7 @@ from __future__ import annotations
 from Value import Value
 from Token import Token
 from Errors.RunTimeError import RTError
+from Nodes.Number import Number
 
 
 class List(Value):

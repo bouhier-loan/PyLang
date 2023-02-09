@@ -1,6 +1,9 @@
+from __future__ import annotations
 from Errors.RunTimeError import RTError
 from Position import Position
 from Context import Context
+from Nodes.Number import Number
+
 ##############
 # ! VALUES ! #
 ##############
