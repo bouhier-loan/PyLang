@@ -167,6 +167,10 @@ class Lexer:
             self.advance()
             token_type = TT_POW
         
+        if self.current_char == '=':
+            self.advance()
+            token_type = TT_MULEQ
+        
         return Token(token_type, pos_start=pos_start, pos_end=self.pos)
     
     def make_divide(self) -> Token:
@@ -177,6 +181,10 @@ class Lexer:
         if self.current_char == '/':
             self.advance()
             token_type = TT_QUO
+
+        if self.current_char == '=':
+            self.advance()
+            token_type = TT_DIVEQ
         
         return Token(token_type, pos_start=pos_start, pos_end=self.pos)
     

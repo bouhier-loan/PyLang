@@ -32,8 +32,10 @@ TT_DIV          = 'DIV'
 TT_POW          = 'POW'
 TT_QUO          = 'QUO'
 TT_MOD          = 'MOD'
-TT_PLUSEQ         = 'PLUSEQ'
-TT_MINUSEQ        = 'MINUSEQ'
+TT_PLUSEQ       = 'PLUSEQ'
+TT_MINUSEQ      = 'MINUSEQ'
+TT_MULEQ        = 'MULEQ'
+TT_DIVEQ        = 'DIVEQ'
 
 # PARENTHESES
 TT_LPAREN       = 'LPAREN'

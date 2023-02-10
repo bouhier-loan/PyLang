@@ -502,12 +502,12 @@ class Parser:
             var_name = self.current_token
             result.register_advance()
             self.advance()
-            operator_token = self.current_token
+            operator_value = self.current_token
 
-            if self.current_token.type not in (TT_EQ, TT_MINUSEQ, TT_PLUSEQ):
+            if self.current_token.type not in (TT_EQ, TT_MINUSEQ, TT_PLUSEQ, TT_DIVEQ, TT_MULEQ):
                 return result.failure(InvalidSyntaxError(
                     self.current_token.pos_start, self.current_token.pos_end,
-                    "Expected '='"
+                    "Expected '=' or operators"
                 ))
         
             result.register_advance()
@@ -515,13 +515,18 @@ class Parser:
 
             expression = result.register(self.expression())
             if result.error: return result
-            if operator_token.type in (TT_PLUSEQ, TT_MINUSEQ):
+            if operator_value.type in (TT_PLUSEQ, TT_MINUSEQ, TT_MULEQ, TT_DIVEQ):
                 current_var_node = VarAccessNode(var_name)
                 token_attr = {
-                    TT_PLUSEQ : TT_PLUS,
-                    TT_MINUSEQ : TT_MINUS,
+                    "PLUSEQ"   : TT_PLUS,
+                    "MINUSEQ"  : TT_MINUS,
+                    "MULEQ"    : TT_MUL,
+                    "DIVEQ"    : TT_DIV,
                 }
-                return result.success(VarAssignNode(var_name, BinOpNode(expression, token_attr[operator_token.type], current_var_node)))
+                operator_token = token_attr[operator_value.type]
+                operator_token = Token(operator_token, pos_start=operator_value.pos_start, pos_end=operator_value.pos_end)
+                expression = BinOpNode(current_var_node, operator_token, expression)
+                return result.success(VarAssignNode(var_name, expression))
             return result.success(VarAssignNode(var_name, expression))
 
         node = result.register(self.bin_operator(self.comp_expr, (TT_AND, TT_OR)))
