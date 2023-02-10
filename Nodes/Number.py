@@ -1,5 +1,6 @@
 from Utils.Token import Token
 
+
 class NumberNode:
     def __init__(self, token : Token) -> None:
         self.token = token

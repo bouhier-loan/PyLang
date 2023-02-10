@@ -1,7 +1,8 @@
 from __future__ import annotations
-from Nodes.Number import NumberNode
-from Nodes.BinOp import BinOpNode
+
 from Errors.Error import Error
+from Nodes.BinOp import BinOpNode
+from Nodes.Number import NumberNode
 
 #####################
 # ! PARSER RESULT ! #

@@ -1,5 +1,6 @@
 from Nodes.BinOp import BinOpNode
 
+
 class ForNode:
     def __init__(self, var_name_token : BinOpNode, start_value_node : BinOpNode, end_value_node : BinOpNode, step_value_node : BinOpNode, body_node : BinOpNode) -> None:
         self.var_name_token = var_name_token

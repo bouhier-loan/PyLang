@@ -1,14 +1,17 @@
 from __future__ import annotations
-import os
+
 import math
-from Values.Functions.BaseFunction import BaseFunction
-from Utils.Token import Token
-from Utils.RTResult import RTResult
+import os
+
+from Errors.RunTimeError import RTError
 from Utils.Context import Context
+from Utils.RTResult import RTResult
+from Utils.Token import Token
+from Values.Functions.BaseFunction import BaseFunction
+from Values.List import List
 from Values.Number import Number
 from Values.String import String
-from Values.List import List
-from Errors.RunTimeError import RTError
+
 
 class BuiltInFunction(BaseFunction):
     def __init__(self, name : Token) -> None:

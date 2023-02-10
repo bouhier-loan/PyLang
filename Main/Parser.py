@@ -1,6 +1,8 @@
 from Utils.Token import Token
-from Main.Constants import *
 from Utils.ParseResult import ParseResult
+
+from Main.Constants import *
+
 from Errors.InvalidSyntaxError import InvalidSyntaxError
 
 from Nodes.BinOp import BinOpNode
@@ -500,8 +502,9 @@ class Parser:
             var_name = self.current_token
             result.register_advance()
             self.advance()
+            operator_token = self.current_token
 
-            if self.current_token.type != TT_EQ:
+            if self.current_token.type not in (TT_EQ, TT_MINUSEQ, TT_PLUSEQ):
                 return result.failure(InvalidSyntaxError(
                     self.current_token.pos_start, self.current_token.pos_end,
                     "Expected '='"
@@ -512,6 +515,13 @@ class Parser:
 
             expression = result.register(self.expression())
             if result.error: return result
+            if operator_token.type in (TT_PLUSEQ, TT_MINUSEQ):
+                current_var_node = VarAccessNode(var_name)
+                token_attr = {
+                    TT_PLUSEQ : TT_PLUS,
+                    TT_MINUSEQ : TT_MINUS,
+                }
+                return result.success(VarAssignNode(var_name, BinOpNode(expression, token_attr[operator_token.type], current_var_node)))
             return result.success(VarAssignNode(var_name, expression))
 
         node = result.register(self.bin_operator(self.comp_expr, (TT_AND, TT_OR)))

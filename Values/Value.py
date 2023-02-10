@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 from Errors.RunTimeError import RTError
-from Utils.Position import Position
 from Utils.Context import Context
+from Utils.Position import Position
 
 ##############
 # ! VALUES ! #

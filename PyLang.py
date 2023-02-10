@@ -1,10 +1,12 @@
-from Main.Constants import *
-from Utils.Token import Token
 from Errors.Error import Error
+
+from Main.Constants import *
+from Main.Interpreter import Interpreter
 from Main.Lexer import Lexer
 from Main.Parser import Parser
-from Main.Interpreter import Interpreter
+
 from Utils.Context import Context
+from Utils.Token import Token
 
 ###########
 # ! RUN ! #
@@ -23,7 +25,7 @@ def run(file_name : str, text : str) -> tuple[Token, Error]:
     ast = parser.parse()
     if ast.error: return None, ast.error
 
-    print(ast.node)
+    #?print(ast.node)
 
     # * Run program *
     interpreter = Interpreter()

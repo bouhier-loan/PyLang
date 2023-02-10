@@ -1,4 +1,5 @@
 from Utils.SymbolTable import SymbolTable
+
 ###############
 # ! CONTEXT ! #
 ###############

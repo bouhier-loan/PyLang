@@ -1,4 +1,5 @@
 from Errors.Error import Error
+
 from Utils.Position import Position
 
 class InvalidSyntaxError(Error):

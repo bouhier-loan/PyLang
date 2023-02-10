@@ -1,5 +1,6 @@
 from Nodes.BinOp import BinOpNode
 
+
 class CallNode:
     def __init__(self, name_node, args_nodes : list[BinOpNode]) -> None:
         self.name_node = name_node

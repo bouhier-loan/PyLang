@@ -1,9 +1,12 @@
+from Errors.Error import Error
+from Errors.ExpectedCharError import ExpectedCharError
+from Errors.IllegalCharError import IllegalCharError
+
+from Main.Constants import *
+
 from Utils.Position import Position
 from Utils.Token import Token
-from Errors.Error import Error
-from Errors.IllegalCharError import IllegalCharError
-from Errors.ExpectedCharError import ExpectedCharError
-from Main.Constants import *
+
 #############
 # ! LEXER ! #
 #############
@@ -23,8 +26,6 @@ class Lexer:
     def make_tokens(self) -> tuple[list[Token], Error]:
         tokens = []
         symbols = {
-            '+' : TT_PLUS,
-            '-' : TT_MINUS,
             '(' : TT_LPAREN, 
             ')' : TT_RPAREN,
             ',' : TT_COMMA,
@@ -48,6 +49,10 @@ class Lexer:
 
             elif self.current_char == '!':
                 tokens.append(self.make_not())
+            elif self.current_char == '+':
+                tokens.append(self.make_plus())
+            elif self.current_char == '-':
+                tokens.append(self.make_minus())
             elif self.current_char == '&':
                 token, error = self.make_and()
                 if error: return [], error
@@ -172,6 +177,28 @@ class Lexer:
         if self.current_char == '/':
             self.advance()
             token_type = TT_QUO
+        
+        return Token(token_type, pos_start=pos_start, pos_end=self.pos)
+    
+    def make_plus(self) -> Token:
+        token_type = TT_PLUS
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            token_type = TT_PLUSEQ
+        
+        return Token(token_type, pos_start=pos_start, pos_end=self.pos)
+
+    def make_minus(self) -> Token:
+        token_type = TT_MINUS
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            token_type = TT_MINUSEQ
         
         return Token(token_type, pos_start=pos_start, pos_end=self.pos)
 

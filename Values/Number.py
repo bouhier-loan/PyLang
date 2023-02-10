@@ -1,8 +1,10 @@
 from __future__ import annotations
-from Utils.Position import Position
+
 from Errors.RunTimeError import RTError
 from Utils.Context import Context
+from Utils.Position import Position
 from Values.Value import Value
+
 
 class Number(Value):
     def __init__(self, value : int | float) -> None:

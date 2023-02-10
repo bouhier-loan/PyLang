@@ -1,5 +1,6 @@
 from Utils.Token import Token
 
+
 class VarAccessNode:
     def __init__(self, var_name_token : Token) -> None:
         self.var_name_token = var_name_token
