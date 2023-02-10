@@ -1,9 +1,9 @@
 from Errors.Error import Error
 
-from Main.Constants import *
-from Main.Interpreter import Interpreter
-from Main.Lexer import Lexer
-from Main.Parser import Parser
+from Core.Constants import *
+from Core.Interpreter import Interpreter
+from Core.Lexer import Lexer
+from Core.Parser import Parser
 
 from Utils.Context import Context
 from Utils.Token import Token

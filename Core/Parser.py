@@ -1,7 +1,7 @@
 from Utils.Token import Token
 from Utils.ParseResult import ParseResult
 
-from Main.Constants import *
+from Core.Constants import *
 
 from Errors.InvalidSyntaxError import InvalidSyntaxError
 

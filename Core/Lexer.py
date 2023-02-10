@@ -2,7 +2,7 @@ from Errors.Error import Error
 from Errors.ExpectedCharError import ExpectedCharError
 from Errors.IllegalCharError import IllegalCharError
 
-from Main.Constants import *
+from Core.Constants import *
 
 from Utils.Position import Position
 from Utils.Token import Token

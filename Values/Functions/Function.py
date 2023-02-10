@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from BaseFunction import BaseFunction
 
-from Main.Interpreter import Interpreter
+from Core.Interpreter import Interpreter
 from Nodes.BinOp import BinOpNode
 from Utils.RTResult import RTResult
 from Utils.Token import Token

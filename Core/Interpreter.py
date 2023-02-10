@@ -13,7 +13,8 @@ from Nodes.While import WhileNode
 
 from Utils.Context import Context
 from Utils.RTResult import RTResult
-from Main.Constants import *
+
+from Core.Constants import *
 
 from Errors.RunTimeError import RTError
 
