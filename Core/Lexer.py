@@ -196,6 +196,9 @@ class Lexer:
         if self.current_char == '=':
             self.advance()
             token_type = TT_PLUSEQ
+        elif self.current_char == '+':
+            self.advance()
+            token_type = TT_PLUSPLUS
         
         return Token(token_type, pos_start=pos_start, pos_end=self.pos)
 
@@ -207,6 +210,9 @@ class Lexer:
         if self.current_char == '=':
             self.advance()
             token_type = TT_MINUSEQ
+        elif self.current_char == '-':
+            self.advance()
+            token_type = TT_MINUSMINUS
         
         return Token(token_type, pos_start=pos_start, pos_end=self.pos)
 

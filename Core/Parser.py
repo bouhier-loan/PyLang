@@ -51,7 +51,7 @@ class Parser:
 
         pos_start = self.current_token.pos_start.copy()
 
-        if not self.current_token.type == TT_LSBRACKET:
+        if not self.current_token.type == TT_LSBRACKET: # LIST
             return result.failure(InvalidSyntaxError(
                 self.current_token.pos_start, self.current_token.pos_end,
                 f"Expected '['"
@@ -378,7 +378,6 @@ class Parser:
             return result.success(CallNode(atom, arg_nodes))
         return result.success(atom)
 
-
     def atom(self) -> ParseResult:
         result = ParseResult()
         token = self.current_token
@@ -485,7 +484,6 @@ class Parser:
             ))
         return result.success(node)
 
-
     def expression(self) -> ParseResult:
         result = ParseResult()
 
@@ -504,11 +502,22 @@ class Parser:
             self.advance()
             operator_value = self.current_token
 
-            if self.current_token.type not in (TT_EQ, TT_MINUSEQ, TT_PLUSEQ, TT_DIVEQ, TT_MULEQ):
+            if self.current_token.type not in (TT_EQ, TT_MINUSEQ, TT_PLUSEQ, TT_DIVEQ, TT_MULEQ, TT_MINUSMINUS, TT_PLUSPLUS):
                 return result.failure(InvalidSyntaxError(
                     self.current_token.pos_start, self.current_token.pos_end,
                     "Expected '=' or operators"
                 ))
+            
+            if operator_value.type in (TT_PLUSPLUS, TT_MINUSMINUS):
+                current_var_node = VarAccessNode(var_name)
+                token_attr = {
+                    TT_PLUSPLUS     : TT_PLUS,
+                    TT_MINUSMINUS   : TT_MINUS,
+                }
+                operator_token = token_attr[operator_value.type]
+                operator_token = Token(operator_token, pos_start=operator_value.pos_start, pos_end=operator_value.pos_end)
+                expression = BinOpNode(current_var_node, operator_token, expression)
+                return result.success(VarAssignNode(var_name, expression))
         
             result.register_advance()
             self.advance()
@@ -518,10 +527,10 @@ class Parser:
             if operator_value.type in (TT_PLUSEQ, TT_MINUSEQ, TT_MULEQ, TT_DIVEQ):
                 current_var_node = VarAccessNode(var_name)
                 token_attr = {
-                    "PLUSEQ"   : TT_PLUS,
-                    "MINUSEQ"  : TT_MINUS,
-                    "MULEQ"    : TT_MUL,
-                    "DIVEQ"    : TT_DIV,
+                    TT_PLUSEQ       : TT_PLUS,
+                    TT_MINUSEQ      : TT_MINUS,
+                    TT_MULEQ        : TT_MUL,
+                    TT_DIVEQ        : TT_DIV,
                 }
                 operator_token = token_attr[operator_value.type]
                 operator_token = Token(operator_token, pos_start=operator_value.pos_start, pos_end=operator_value.pos_end)
