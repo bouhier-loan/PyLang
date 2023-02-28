@@ -8,3 +8,6 @@ class VarAssignNode:
 
         self.pos_start = var_name_token.pos_start
         self.pos_end = value_node.pos_end
+    
+    def __repr__(self) -> str:
+        return f"{self.var_name_token.value} = {self.value_node}"

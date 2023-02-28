@@ -20,11 +20,12 @@ def run(file_name : str, text : str, testing : bool = False) -> tuple[Token, Err
     tokens, error = lexer.make_tokens()
     if error: return None, error
 
-    if tokens[1] == TT_QMARK:
+    if tokens[0].type == TT_QMARK:
         if testing:
-            return None, None
-        else:
             tokens = tokens[1:]
+        else:
+            return None, None
+
     #?print(tokens)
 
     # * Generate AST *
@@ -32,7 +33,7 @@ def run(file_name : str, text : str, testing : bool = False) -> tuple[Token, Err
     ast = parser.parse()
     if ast.error: return None, ast.error
 
-    #?print(ast.node)
+    #?print('> ' + str(ast.node))
 
     # * Run program *
     interpreter = Interpreter()

@@ -9,4 +9,4 @@ class NumberNode:
         self.pos_end = self.token.pos_end
     
     def __repr__(self) -> str:
-        return f'{self.token}'
+        return f'{self.token.value}'

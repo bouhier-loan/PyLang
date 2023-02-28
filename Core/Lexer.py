@@ -72,8 +72,9 @@ class Lexer:
                 tokens.append(self.make_multiply())
             elif self.current_char == '/':
                 tokens.append(self.make_divide())
-            elif self.current_char == '"':
-                tokens.append(self.make_string())
+            elif self.current_char in ['"', "'"]:
+                tokens.append(self.make_string(self.current_char))
+            
 
             else:
                 pos_start = self.pos.copy()
@@ -237,14 +238,14 @@ class Lexer:
         self.advance()
         return None, ExpectedCharError(pos_start, self.pos, "'|' (after '|')")
     
-    def make_string(self) -> Token:
+    def make_string(self, char : str) -> Token:
         string = ''
         escape_character = False
 
         pos_start = self.pos.copy()
 
         self.advance()
-        while self.current_char is not None and (self.current_char != '"' or escape_character):
+        while self.current_char is not None and (self.current_char != char or escape_character):
             if escape_character:
                 if self.current_char == 't':
                     string += '\t'

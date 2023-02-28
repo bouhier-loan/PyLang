@@ -12,3 +12,6 @@ class CallNode:
             self.pos_end = args_nodes[-1].pos_end
         else:
             self.pos_end = name_node.pos_end
+    
+    def __repr__(self) -> str:
+        return f"{self.name_node}({''.join([str(e) + ', ' if index != len(self.args_nodes) - 1 else str(e) for index ,e in enumerate(self.args_nodes)])})"

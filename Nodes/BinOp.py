@@ -11,4 +11,26 @@ class BinOpNode:
         self.pos_end = self.right_node.pos_end
     
     def __repr__(self) -> str:
-        return f'({self.left_node}, {self.op_token}, {self.right_node})'
+        dico = {
+            'LT' : '<',
+            'GT' : '>',
+            'EQ' : '=',
+            'EE' : '==',
+            'NE' : '!=',
+            'LTE' : '<=',
+            'GTE' : '>=',
+            'PLUS' : '+',
+            'MINUS' : '-',
+            'MUL' : '*',
+            'DIV' : '/',
+            'POW' : '**',
+            'QUO' : '//',
+            'MOD' : '%',
+            'PLUSEQ' : '+=',
+            'MINUSEQ' : '-=',
+            'MULEQ' : '*=',
+            'DIVEQ' : '/=',
+            'PLUSPLUS' : '++',
+            'MINUSMINUS' : '--',
+        }
+        return f'({self.left_node}, {dico[self.op_token.type]}, {self.right_node})'

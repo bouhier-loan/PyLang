@@ -11,3 +11,6 @@ class ForNode:
 
         self.pos_start = var_name_token.pos_start
         self.pos_end = body_node.pos_end
+    
+    def __repr__(self) -> str:
+        return f"for {self.var_name_token} = {self.start_value_node} to {self.end_value_node} {f'step {self.step_value_node}' if self.step_value_node else ''} {'{'}{self.body_node}{'}'}"

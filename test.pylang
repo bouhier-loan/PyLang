@@ -1,4 +1,4 @@
 var a = 2
-?var a++
-if (a == 3) then var a = 10 else var a = 0
+?print("This is a test")
+if a == 3 then var a++ else var a--
 print(str(a))

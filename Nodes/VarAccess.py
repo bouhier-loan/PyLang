@@ -7,3 +7,6 @@ class VarAccessNode:
 
         self.pos_start = var_name_token.pos_start
         self.pos_end = var_name_token.pos_end
+    
+    def __repr__(self) -> str:
+        return f'{self.var_name_token.value}'

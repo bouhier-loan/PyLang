@@ -16,3 +16,6 @@ class FuncDefNode:
             self.pos_start = body_node.pos_start
 
         self.pos_end = body_node.pos_end
+    
+    def __repr__(self) -> str:
+        return f"def {self.var_name_token}({''.join([str(e) + ', ' if index != len(self.arg_name_tokens) - 1 else str(e) for index ,e in enumerate(self.arg_name_tokens)])}) {'{'}{self.body_node}{'}'}"
