@@ -516,7 +516,9 @@ class Parser:
                 }
                 operator_token = token_attr[operator_value.type]
                 operator_token = Token(operator_token, pos_start=operator_value.pos_start, pos_end=operator_value.pos_end)
-                expression = BinOpNode(current_var_node, operator_token, expression)
+                expression = BinOpNode(current_var_node, operator_token, NumberNode(Token(TT_INT, 1, operator_value.pos_start, operator_value.pos_end)))
+                result.register_advance()
+                self.advance()
                 return result.success(VarAssignNode(var_name, expression))
         
             result.register_advance()
@@ -535,7 +537,6 @@ class Parser:
                 operator_token = token_attr[operator_value.type]
                 operator_token = Token(operator_token, pos_start=operator_value.pos_start, pos_end=operator_value.pos_end)
                 expression = BinOpNode(current_var_node, operator_token, expression)
-                return result.success(VarAssignNode(var_name, expression))
             return result.success(VarAssignNode(var_name, expression))
 
         node = result.register(self.bin_operator(self.comp_expr, (TT_AND, TT_OR)))

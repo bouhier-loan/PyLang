@@ -68,6 +68,9 @@ TT_OR           = 'OR'
 # END OF FILE
 TT_EOF          = 'EOF'
 
+# TESTING
+TT_QMARK        = 'QMARK'
+
 # KEYWORDS LIST
 
 KEYWORDS = [
@@ -122,7 +125,7 @@ global_symbol_table.set("true", Number.true)
 
 # * Built in functions *
 global_symbol_table.set("print", BuiltInFunction.print)
-global_symbol_table.set("string", BuiltInFunction.string)
+global_symbol_table.set("str", BuiltInFunction.string)
 global_symbol_table.set("int", BuiltInFunction.int)
 global_symbol_table.set("float", BuiltInFunction.float)
 global_symbol_table.set("input", BuiltInFunction.input)

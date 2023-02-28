@@ -33,6 +33,7 @@ class Lexer:
             '%' : TT_MOD,
             '[' : TT_LSBRACKET,
             ']' : TT_RSBRACKET,
+            '?' : TT_QMARK,
             }
 
         while self.current_char != None:
