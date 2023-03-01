@@ -44,6 +44,18 @@ def run(file_name : str, text : str, testing : bool = False) -> tuple[Token, Err
 
     return result.value, result.error
 
+def runFile(file_name : str, testing : bool = False) -> tuple[Token, Error]:
+    try:
+        fileText = open(file_name).read().split('\n')
+    except FileNotFoundError:
+            print('File not found')
+            exit(1)
+    for line in fileText:
+        if line == '':
+            continue
+        _, error = run(file_name, line, testing)
+        if error: print(error)
+
 if __name__ == '__main__':
     args = argv
     if len(args) == 1:
@@ -53,11 +65,4 @@ if __name__ == '__main__':
         if '-test' in args:
             args.remove('-test')
             testing = True
-        try:
-            fileText = open(args[1]).read().split('\n')
-        except FileNotFoundError:
-            print('File not found')
-            exit(1)
-        for line in fileText:
-            result, error = run(args[1], line, testing)
-            if error: print(error)
+        runFile(args[1], testing)
