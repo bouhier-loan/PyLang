@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import math
 import os
+from pathlib import Path
 
 from Errors.RunTimeError import RTError
 from Utils.Context import Context
 from Utils.RTResult import RTResult
 from Utils.Token import Token
 from Values.Functions.BaseFunction import BaseFunction
+from Values.RunFileValue import RunFileValue
 from Values.List import List
 from Values.Number import Number
 from Values.String import String
-
 
 class BuiltInFunction(BaseFunction):
     def __init__(self, name : Token) -> None:
@@ -276,3 +277,24 @@ class BuiltInFunction(BaseFunction):
             return_value += element.value
         return RTResult().success(Number(return_value))
     execute_sum.arg_names = ["list"]
+
+    def execute_run(self, exec_context : Context) -> RTResult:
+        file = exec_context.symbol_table.get('file')
+
+        if not isinstance(file, String):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Argument must be STRING",
+                exec_context
+            ))
+
+        my_file = Path(file.value)
+        if my_file.is_file():
+            return RTResult().success(RunFileValue(file))
+        else:
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "File does not exists",
+                exec_context
+            ))
+    execute_run.arg_names = ["file"]

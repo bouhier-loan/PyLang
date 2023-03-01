@@ -1,0 +1,3 @@
+print(5)
+run("./Tests/test.pyl")
+print(1)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from BaseFunction import BaseFunction
+from Values.Functions.BaseFunction import BaseFunction
 
 from Core.Interpreter import Interpreter
 from Nodes.BinOp import BinOpNode
