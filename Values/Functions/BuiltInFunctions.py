@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 import os
-from pathlib import Path
+from os import path
 
 from Errors.RunTimeError import RTError
 from Utils.Context import Context
@@ -10,6 +10,7 @@ from Utils.RTResult import RTResult
 from Utils.Token import Token
 from Values.Functions.BaseFunction import BaseFunction
 from Values.RunFileValue import RunFileValue
+from Values.ImportModule import ImportModule
 from Values.List import List
 from Values.Number import Number
 from Values.String import String
@@ -288,13 +289,18 @@ class BuiltInFunction(BaseFunction):
                 exec_context
             ))
 
-        my_file = Path(file.value)
-        if my_file.is_file():
-            return RTResult().success(RunFileValue(file))
-        else:
+        return RTResult().success(RunFileValue(file))
+    execute_run.arg_names = ["file"]
+
+    def execute_import_module(self, exec_context : Context) -> RTResult:
+        file = exec_context.symbol_table.get('file')
+
+        if not isinstance(file, String):
             return RTResult().failure(RTError(
                 self.pos_start, self.pos_end,
-                "File does not exists",
+                "Argument must be STRING",
                 exec_context
             ))
-    execute_run.arg_names = ["file"]
+
+        return RTResult().success(ImportModule(file))
+    execute_import_module.arg_names = ["file"]

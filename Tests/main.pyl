@@ -1,3 +1,2 @@
-print(5)
-run("./Tests/test.pyl")
-print(1)
+run("./test.pyl")
+print(a)

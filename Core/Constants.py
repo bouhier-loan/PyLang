@@ -13,6 +13,7 @@ from Utils.SymbolTable import SymbolTable
 
 GLOBAL_TESTING  = False
 
+
 # LETTERS & DIGITS
 DIGITS          = '0123456789'
 LETTERS         = string.ascii_letters
@@ -117,6 +118,7 @@ BuiltInFunction.sqrt                = BuiltInFunction("sqrt")
 BuiltInFunction.len                 = BuiltInFunction("len")
 BuiltInFunction.sum                 = BuiltInFunction("sum")
 BuiltInFunction.run                 = BuiltInFunction("run")
+BuiltInFunction.import_module       = BuiltInFunction("import_module")
 
 # Public symbol table
 global_symbol_table = SymbolTable()
@@ -148,3 +150,4 @@ global_symbol_table.set("sqrt", BuiltInFunction.sqrt)
 global_symbol_table.set("len", BuiltInFunction.len)
 global_symbol_table.set("sum", BuiltInFunction.sum)
 global_symbol_table.set("run", BuiltInFunction.run)
+global_symbol_table.set("import", BuiltInFunction.import_module)

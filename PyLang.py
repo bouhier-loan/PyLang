@@ -7,16 +7,20 @@ from Core.Parser import Parser
 
 from Utils.Context import Context
 from Utils.Token import Token
+from Utils.SymbolTable import SymbolTable
 
 from Values.RunFileValue import RunFileValue
+from Values.ImportModule import ImportModule
 
 from sys import argv
+from os import path
+from os import getcwd
 
 ###########
 # ! RUN ! #
 ###########
 
-def _run(file_name : str, text : str) -> tuple[Token, Error]:
+def _run(file_name : str, text : str, symbol_table : SymbolTable) -> tuple[Token, Error]:
     # * Generate tokens *
     lexer = Lexer(file_name, text)
     tokens, error = lexer.make_tokens()
@@ -40,30 +44,41 @@ def _run(file_name : str, text : str) -> tuple[Token, Error]:
     # * Run program *
     interpreter = Interpreter()
     context = Context('<program>')
-    context.symbol_table = global_symbol_table
+    context.symbol_table = symbol_table
     result = interpreter.visit(ast.node, context)
 
 
     return result.value, result.error
 
-def runFile(file_name : str) -> tuple[Token, Error]:
+def runFile(file_name : str, return_symbol_table : bool = False) -> (SymbolTable or None):
     try:
         fileText = open(file_name).read().split('\n')
+        current_file_dir = path.dirname(path.abspath(file_name))
+        
     except FileNotFoundError:
             print('File not found')
             exit(1)
+    file_symbol_table = SymbolTable(global_symbol_table)
     for line in fileText:
         if line == '':
             continue
-        result, error = _run(file_name, line)
+        result, error = _run(file_name, line, file_symbol_table)
         if error: print(error)
         if isinstance(result, RunFileValue):
-            runFile(result.value.value)
+            #?print("> RUN FILE: " + path.abspath(path.relpath(result.value.value, current_file_dir)))
+            runFile(path.abspath(path.relpath(result.value.value, current_file_dir)))
+        elif isinstance(result, ImportModule):
+            #?print("> IMPORT MODULE: " + path.abspath(path.relpath(result.value.value, current_file_dir)))
+            st = runFile(path.abspath(path.relpath(result.value.value, current_file_dir)), True)
+            file_symbol_table = SymbolTable(st)
+    if return_symbol_table:
+        return file_symbol_table
+        
 
 if __name__ == '__main__':
     args = argv
     if len(args) == 1:
-        exec(open("shell.py").read())
+        exec(open("~/reseau/Perso/Cours/ProjetsPersos/PyLang/shell.py").read())
     elif len(args) <= 3:
         if '-test' in args:
             args.remove('-test')
