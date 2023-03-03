@@ -40,7 +40,7 @@ class Lexer:
             '\n' : TT_NEWLINE,
             }
 
-        while self.current_char != None:
+        while self.current_char != None and self.current_char != '#':
             if self.current_char in ' \t':
                 self.advance()
             elif self.current_char in symbols.keys():

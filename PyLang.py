@@ -31,8 +31,10 @@ def _run(file_name : str, text : str, symbol_table : SymbolTable) -> tuple[Token
             tokens = tokens[1:]
         else:
             return None, None
+    elif tokens[0].type == TT_EOF:
+        return None, None
 
-    #?print('> Tokens - ' + tokens)
+    #?print(tokens)
 
     # * Generate AST *
     parser = Parser(tokens)

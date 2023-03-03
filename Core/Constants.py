@@ -16,7 +16,7 @@ GLOBAL_TESTING  = False
 
 # LETTERS & DIGITS
 DIGITS          = '0123456789'
-LETTERS         = string.ascii_letters
+LETTERS         = string.ascii_letters 
 LETTERS_DIGITS  = LETTERS + DIGITS
 
 # KEYWORDS & =
@@ -77,7 +77,7 @@ TT_OR           = 'OR'
 TT_NEWLINE     = 'NEW_LINE'
 TT_EOF          = 'EOF'
 
-# TESTING
+# TESTING & COMENTS
 TT_QMARK        = 'QMARK'
 
 # KEYWORDS LIST
