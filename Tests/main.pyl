@@ -1,2 +1,2 @@
-run("./test.pyl")
-print(a)
+var a = "Je veux tester si le # fonctionne dans du texte"
+#print(type(a))
