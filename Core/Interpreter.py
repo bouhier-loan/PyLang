@@ -1,3 +1,10 @@
+from __future__ import annotations
+from Values.Number import Number
+from Values.String import String
+from Values.List import List
+from Values.Functions.BaseFunction import BaseFunction
+from Values.Value import Value
+
 from Nodes.BinOp import BinOpNode
 from Nodes.UnaryOp import UnaryOpNode
 from Nodes.Number import NumberNode
@@ -12,23 +19,47 @@ from Nodes.Call import CallNode
 from Nodes.While import WhileNode
 
 from Utils.Context import Context
+from Utils.Token import Token
 from Utils.RTResult import RTResult
 
 from Core.Constants import *
 
 from Errors.RunTimeError import RTError
 
-from Values.Number import Number
-from Values.String import String
-from Values.List import List
+###################
+# ! INTERPRETER ! #
+###################
+class Function(BaseFunction):
+    def __init__(self, name : Token, body_node : BinOpNode, arg_names : list[Token]) -> None:
+        super().__init__(name)
+        self.body_node = body_node
+        self.arg_names = arg_names
 
+    def execute(self, args : list[Value]) -> RTResult:
+        result = RTResult()
+        interpreter = Interpreter()
+        exec_context = self.generate_new_context()
 
+        result.register(self.check_populate_args(self.arg_names, args, exec_context))
+        if result.error: return result
+        
+        value = result.register(interpreter.visit(self.body_node, exec_context))
+        if result.error: return result
 
+        return result.success(value)
+    
+    def copy(self) -> Function:
+        copy = Function(self.name, self.body_node, self.arg_names)
+        copy.set_context(self.context)
+        copy.set_pos(self.pos_start, self.pos_end)
+        return copy
+    
+    def __repr__(self) -> str:
+        return f'<function {self.name}>'
 
 ###################
 # ! INTERPRETER ! #
 ###################
-
 class Interpreter:
     def visit(self, node, context : Context) -> RTResult:
         method_name = f'visit_{type(node).__name__}'
@@ -131,8 +162,10 @@ class Interpreter:
         return result.success(value)
 
     def visit_IfNode(self, node : IfNode, context : Context) -> RTResult:
+        #?print('visit_IfNode')
         result = RTResult()
 
+        #?print('> Node cases - ' + str(node.cases))
         for condition, expression in node.cases:
             condition_value = result.register(self.visit(condition, context))
             if result.error: return result

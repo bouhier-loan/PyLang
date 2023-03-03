@@ -52,6 +52,9 @@ TT_RPAREN       = 'RPAREN'
 TT_LSBRACKET    = 'LSBRACKET'
 TT_RSBRACKET    = 'RSBRACKET'
 
+TT_RCBRACKET    = 'RCBRACKET'
+TT_LCBRACKET    = 'LCBRACKET'
+
 # SEPARATORS
 
 TT_COMMA        = 'COMMA'
@@ -70,7 +73,8 @@ TT_NOT          = 'NOT'
 TT_AND          = 'AND'
 TT_OR           = 'OR'
 
-# END OF FILE
+# NEW LINE & END OF FILE
+TT_NEWLINE     = 'NEW_LINE'
 TT_EOF          = 'EOF'
 
 # TESTING

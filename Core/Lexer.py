@@ -34,6 +34,10 @@ class Lexer:
             '[' : TT_LSBRACKET,
             ']' : TT_RSBRACKET,
             '?' : TT_QMARK,
+            '{' : TT_LCBRACKET,
+            '}' : TT_RCBRACKET,
+            ';' : TT_NEWLINE,
+            '\n' : TT_NEWLINE,
             }
 
         while self.current_char != None:

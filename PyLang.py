@@ -32,14 +32,14 @@ def _run(file_name : str, text : str, symbol_table : SymbolTable) -> tuple[Token
         else:
             return None, None
 
-    #?print(tokens)
+    #?print('> Tokens - ' + tokens)
 
     # * Generate AST *
     parser = Parser(tokens)
     ast = parser.parse()
     if ast.error: return None, ast.error
 
-    #?print('> ' + str(ast.node))
+    #?print('> Nodes - ' + str(ast.node))
 
     # * Run program *
     interpreter = Interpreter()
@@ -52,33 +52,20 @@ def _run(file_name : str, text : str, symbol_table : SymbolTable) -> tuple[Token
 
 def runFile(file_name : str, return_symbol_table : bool = False) -> (SymbolTable or None):
     try:
-        fileText = open(file_name).read().split('\n')
-        current_file_dir = path.dirname(path.abspath(file_name))
-        
+        fileText = open(file_name).read()        
     except FileNotFoundError:
             print('File not found')
             exit(1)
     file_symbol_table = SymbolTable(global_symbol_table)
-    for line in fileText:
-        if line == '':
-            continue
-        result, error = _run(file_name, line, file_symbol_table)
-        if error: print(error)
-        if isinstance(result, RunFileValue):
-            #?print("> RUN FILE: " + path.abspath(path.relpath(result.value.value, current_file_dir)))
-            runFile(path.abspath(path.relpath(result.value.value, current_file_dir)))
-        elif isinstance(result, ImportModule):
-            #?print("> IMPORT MODULE: " + path.abspath(path.relpath(result.value.value, current_file_dir)))
-            st = runFile(path.abspath(path.relpath(result.value.value, current_file_dir)), True)
-            file_symbol_table = SymbolTable(st)
-    if return_symbol_table:
-        return file_symbol_table
+
+    _, error = _run(file_name, fileText, file_symbol_table)
+    if error: print(error)
         
 
 if __name__ == '__main__':
     args = argv
     if len(args) == 1:
-        exec(open("~/reseau/Perso/Cours/ProjetsPersos/PyLang/shell.py").read())
+        exec(open("shell.py").read())
     elif len(args) <= 3:
         if '-test' in args:
             args.remove('-test')

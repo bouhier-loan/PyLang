@@ -1,2 +1,5 @@
-run("./test.pyl")
-print(a)
+func sum(a, b) {
+    print(a + b)
+}
+
+sum(2,1)

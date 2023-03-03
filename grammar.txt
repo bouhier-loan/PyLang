@@ -1,3 +1,5 @@
+statement   : NEWLINE* expr (NEWLINE+ expr)* NEWLINE
+
 expr        : KEYWORD:VAR IDENTIFIER EQ expr
             : comp-expr ((KEYWORD:AND|KEYWORD:OR) compr-expr)*
 
@@ -25,12 +27,27 @@ atom        : INT|FLOAT|STRING|IDENTIFIER
 
 list-expr   : LSBRACKET (expr (COMMA expr)*)? RSBRACKET
 
-if-expr     : KEYWORD:if expr KEYWORD:then expr
-            : (KEYWORD:elif expr KEYWORD:then expr)*
-            : (KEYWORD:else expr)?
+if-expr     : KEYWORD:if expr LCBRACKET
+            : (expr if-expr-b | if-expr-c?)
+            | (NEWLINE statements RCBRACKET if-expr-b | if-expr-c)
 
-for-expr    : KEYWORD:for IDENTIFIER expr KEYWORD:to expr (KEYWORD:step expr)? KEYWORD:then expr
+if-expr-b   : KEYWORD:elif expr LCBRACKET
+            : (expr if-expr-b | if-expr-c?)
+            | (NEWLINE statements RCBRACKET if-expr-b | if-expr-c)
 
-while-expr  : KEYWORD:while expr KEYWORD:then expr
+if-expr     : KEYWORD:if expr LCBRACKET
+              expr
+            | (NEWLINE statements RCBRACKET)
 
-func-def    : KEYWORD:func IDENTIFIER? LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN COLON expr
+for-expr    : KEYWORD:for IDENTIFIER EQ expr KEYWORD:to expr 
+            : (KEYWORD:step expr)? LCBRACKET
+            : expr
+            | (NEWLINE statements RCBRACKET)
+
+while-expr  : KEYWORD:while expr LCBRACKET
+            : expr
+            | (NEWLINE statements RCBRACKET)
+
+func-def    : KEYWORD:func IDENTIFIER? LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN
+            : (EQ expr)
+            | (LCBRACKET NEWLINE statements RCBRACKET)
