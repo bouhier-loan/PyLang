@@ -12,16 +12,60 @@ from Utils.Token import Token
 #############
 
 class Lexer:
-    def __init__(self, file_name : str, text : str) -> None:
+    def __init__(self, file_name : str, text : str, testing : bool = False) -> None:
         self.file_name = file_name
         self.text = text
         self.pos = Position(-1, 0, -1, file_name, text)
         self.current_char = None
+        self.testing = testing
         self.advance()
     
     def advance(self) -> None:
         self.pos.advance(self.current_char)
         self.current_char = self.text[self.pos.index] if self.pos.index < len(self.text) else None
+    
+    def skip_one_line_comment(self) -> bool:
+        self.advance()
+
+        while self.current_char != '\n' and self.current_char != None:
+            self.advance()
+
+        if self.current_char == None:
+            return True
+        
+        self.advance()
+        return False
+    
+    def skip_multiline_comment(self) -> bool:
+        print('> Skipping multiline comment')
+
+        last_char = ''
+
+        self.advance()
+
+        while self.current_char != None:
+            if self.current_char == '\n':
+                self.advance()
+                continue
+
+            if last_char + self.current_char == '*/':
+                break
+            last_char = self.current_char
+            self.advance()
+
+        if self.current_char == None:
+            return True
+        
+        self.advance()
+        print('> Multiline comment skipped : ' + (str(self.current_char) if self.current_char != None else 'EOF'))
+        return False
+    
+    def manage_testing(self) -> bool:
+        if self.testing:
+            self.advance()
+            return False
+        else:
+            return self.skip_one_line_comment()
 
     def make_tokens(self) -> tuple[list[Token], Error]:
         tokens = []
@@ -33,23 +77,30 @@ class Lexer:
             '%' : TT_MOD,
             '[' : TT_LSBRACKET,
             ']' : TT_RSBRACKET,
-            '?' : TT_QMARK,
             '{' : TT_LCBRACKET,
             '}' : TT_RCBRACKET,
             ';' : TT_NEWLINE,
-            '\n' : TT_NEWLINE,
+            '\n': TT_NEWLINE,
             }
 
-        while self.current_char != None and self.current_char != '#':
+        while self.current_char != None:
             if self.current_char in ' \t':
                 self.advance()
+                continue
+            if self.current_char == '#':
+                if self.skip_one_line_comment():
+                    continue
+            if self.current_char == '?':
+                
+                if self.manage_testing():
+                    continue
             elif self.current_char in symbols.keys():
                 tokens.append(Token(symbols[self.current_char], pos_start=self.pos))
                 self.advance()
 
             elif self.current_char in DIGITS:
                 tokens.append(self.make_number())
-            elif self.current_char in LETTERS:
+            elif self.current_char in LETTERS + '_':
                 tokens.append(self.make_identifier())
 
             elif self.current_char == '!':
@@ -75,16 +126,16 @@ class Lexer:
             elif self.current_char == '*':
                 tokens.append(self.make_multiply())
             elif self.current_char == '/':
-                tokens.append(self.make_divide())
+                result = self.make_divide()
+                if result: tokens.append(result)
             elif self.current_char in ['"', "'"]:
                 tokens.append(self.make_string(self.current_char))
             
-
             else:
                 pos_start = self.pos.copy()
                 char = self.current_char
                 self.advance()
-                return [], IllegalCharError(pos_start, self.pos, "'" + char + "'")
+                return [], IllegalCharError(pos_start, self.pos, "'" + char + "' - Ascii code: " + str(ord(char)))
 
         tokens.append(Token(TT_EOF, pos_start=self.pos))
         return tokens, None
@@ -191,6 +242,10 @@ class Lexer:
         if self.current_char == '=':
             self.advance()
             token_type = TT_DIVEQ
+        
+        if self.current_char == '*':
+            print(self.current_char)
+            return self.skip_multiline_comment()
         
         return Token(token_type, pos_start=pos_start, pos_end=self.pos)
     

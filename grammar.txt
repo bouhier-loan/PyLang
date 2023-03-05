@@ -1,4 +1,9 @@
-statement   : NEWLINE* expr (NEWLINE+ expr)* NEWLINE
+statements  : NEWLINE* statement (NEWLINE+ statement)* NEWLINE
+
+statement   : KEYWORD:BREAK expr?
+            : KEYWORD:CONTINUE
+            : KEYWORD:BREAK
+            : expr
 
 expr        : KEYWORD:VAR IDENTIFIER EQ expr
             : comp-expr ((KEYWORD:AND|KEYWORD:OR) compr-expr)*
@@ -28,15 +33,15 @@ atom        : INT|FLOAT|STRING|IDENTIFIER
 list-expr   : LSBRACKET (expr (COMMA expr)*)? RSBRACKET
 
 if-expr     : KEYWORD:if expr LCBRACKET
-            : (expr if-expr-b | if-expr-c?)
+            : (statement if-expr-b | if-expr-c?)
             | (NEWLINE statements RCBRACKET if-expr-b | if-expr-c)
 
 if-expr-b   : KEYWORD:elif expr LCBRACKET
-            : (expr if-expr-b | if-expr-c?)
+            : (statement if-expr-b | if-expr-c?)
             | (NEWLINE statements RCBRACKET if-expr-b | if-expr-c)
 
 if-expr     : KEYWORD:if expr LCBRACKET
-              expr
+              statement
             | (NEWLINE statements RCBRACKET)
 
 for-expr    : KEYWORD:for IDENTIFIER EQ expr KEYWORD:to expr 

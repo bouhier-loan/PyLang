@@ -3,10 +3,11 @@ from Utils.Token import Token
 
 
 class FuncDefNode:
-    def __init__(self, var_name_token : Token, arg_name_tokens : list[Token], body_node : BinOpNode) -> None:
+    def __init__(self, var_name_token : Token, arg_name_tokens : list[Token], body_node : BinOpNode, auto_return) -> None:
         self.var_name_token = var_name_token
         self.arg_name_tokens = arg_name_tokens
         self.body_node = body_node
+        self.auto_return = auto_return
 
         if var_name_token:
             self.pos_start = var_name_token.pos_start

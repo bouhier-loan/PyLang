@@ -17,6 +17,9 @@ from Nodes.String import StringNode
 from Nodes.UnaryOp import UnaryOpNode
 from Nodes.VarAccess import VarAccessNode
 from Nodes.VarAssign import VarAssignNode
+from Nodes.Return import ReturnNode
+from Nodes.Continue import ContinueNode
+from Nodes.Break import BreakNode
 
 
 ##############
@@ -62,7 +65,7 @@ class Parser:
             res.register_advance()
             self.advance()
         
-        statement = res.register(self.expression())
+        statement = res.register(self.statement())
         if res.error: return res
         statements.append(statement)
 
@@ -80,7 +83,7 @@ class Parser:
             
             if not more_statements: break
         
-            statement = res.try_register(self.expression())
+            statement = res.try_register(self.statement())
             if not statement:
                 self.reverse(res.to_reverse_count)
                 more_statements = False
@@ -92,6 +95,37 @@ class Parser:
             pos_start,
             self.current_token.pos_end.copy()
         ))
+
+    def statement(self) -> ParseResult:
+        res = ParseResult()
+        pos_start = self.current_token.pos_start.copy()
+
+        if self.current_token.matches(TT_KEYWORD, 'return'):
+            res.register_advance()
+            self.advance()
+
+            expr = res.try_register(self.expression())
+            if not expr:
+                self.reverse(res.to_reverse_count)
+            return res.success(ReturnNode(expr, pos_start, self.current_token.pos_end.copy()))
+        
+        if self.current_token.matches(TT_KEYWORD, 'continue'):
+            res.register_advance()
+            self.advance()
+            return res.success(ContinueNode(pos_start, self.current_token.pos_end.copy()))
+        
+        if self.current_token.matches(TT_KEYWORD, 'break'):
+            res.register_advance()
+            self.advance()
+            return res.success(BreakNode(pos_start, self.current_token.pos_end.copy()))
+
+        expr = res.register(self.expression())
+        if res.error:
+            return res.failure(InvalidSyntaxError(
+                self.current_token.pos_start, self.current_token.pos_end,
+                "Expected 'return', 'continue', 'break', 'var', 'if', 'for', 'while', 'func', INT, FLOAT, IDENTIFIER, '+', '-', '(' or '!'"
+            ))
+        return res.success(expr)
 
 #* LIST EXPRESSIONS
 
@@ -207,7 +241,7 @@ class Parser:
                 ))
         else:
             #?print('> Pas de retour à la ligne')
-            expr = result.register(self.expression())
+            expr = result.register(self.statement())
             #?print('> expr = ' + str(expr))
             if result.error: return result
             cases.append((condition, expr))
@@ -270,7 +304,7 @@ class Parser:
                         ))
                 else:
                     #?print('> Pas de retour à la ligne')
-                    expr = res.register(self.expression())
+                    expr = res.register(self.statement())
                     if res.error: return res
                     else_case = expr
                     #?print('> else_case = ' + str(else_case))
@@ -554,6 +588,7 @@ class Parser:
             
             result.register_advance()
             self.advance()
+            return result.success(FuncDefNode(func_name_token, arg_name_tokens, body_node, False))
         else:
             body_node = result.register(self.expression())
             if result.error: return result
@@ -566,8 +601,8 @@ class Parser:
             
             result.register_advance()
             self.advance()
-
-        return result.success(FuncDefNode(func_name_token, arg_name_tokens, body_node))
+            return result.success(FuncDefNode(func_name_token, arg_name_tokens, body_node, True))
+        
 
     def call(self) -> ParseResult:
         result = ParseResult()
