@@ -573,13 +573,35 @@ class Interpreter:
     def visit_VarAccessNode(self, node : VarAccessNode, context : Context) -> RTResult:
         result = RTResult()
         var_name = node.var_name_token.value
-        value = context.symbol_table.get(var_name)
+        value : Value = context.symbol_table.get(var_name)
+
         if not value:
             return result.failure(RTError(
                 node.pos_start, node.pos_end,
                 f"'{var_name}' is not defined",
                 context
             ))
+
+        if len(node.slice_or_getter) == 1:
+            ope1 : Number = result.register(self.visit(node.slice_or_getter[0], context))
+            if result.should_return(): return result
+            value, error = value.get(ope1)
+            if error: return result.failure(error)
+
+        elif len(node.slice_or_getter) == 2:
+            ope1 = node.slice_or_getter[0]
+            if ope1 != None:
+                ope1 = result.register(self.visit(ope1, context))
+                if result.should_return(): return result
+
+            ope2 = node.slice_or_getter[1]
+            if ope2!= None:
+                ope2 = result.register(self.visit(ope2, context))
+                if result.should_return(): return result
+
+            value, error = value.get_slice(ope1, ope2)
+            if error: return result.failure(error)
+
         
         value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return result.success(value)
@@ -704,7 +726,7 @@ class Interpreter:
         body_node = node.body_node
         arg_names = [arg_name.value for arg_name in node.arg_name_tokens]
 
-        func_value = Function(func_name, body_node, arg_names, node.auto_return).sename_nodet_context(context).set_pos(node.pos_start, node.pos_end)
+        func_value = Function(func_name, body_node, arg_names, node.auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
 
         if node.var_name_token:
             context.symbol_table.set(func_name, func_value)

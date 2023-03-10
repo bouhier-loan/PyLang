@@ -661,9 +661,9 @@ class Parser:
             return result.success(StringNode(token))
         
         elif token.type == TT_IDENTIFIER:
-            result.register_advance()
-            self.advance()
-            return result.success(VarAccessNode(token))
+            var_expr = result.register(self.var_expr())
+            if result.error: return result
+            return result.success(var_expr)
 
         elif token.type == TT_LPAREN:
             result.register_advance()
@@ -727,6 +727,55 @@ class Parser:
 
     def term(self) -> BinOpNode:
         return self.bin_operator(self.factor, (TT_MUL, TT_DIV, TT_MOD, TT_QUO))
+
+    def var_expr(self) -> ParseResult:
+        result = ParseResult()
+        token = self.current_token
+        slice_or_getter = []
+
+        if token.type != TT_IDENTIFIER:
+            return result.failure(InvalidSyntaxError(
+                token.pos_start, token.pos_end,
+                f"Expected IDENTIFIER"
+            ))
+
+        result.register_advance()
+        self.advance()
+
+        
+        if self.current_token.type == TT_LSBRACKET:
+            result.register_advance()
+            self.advance()
+
+            if self.current_token.type == TT_COLON:
+                slice_or_getter.append(None)
+                result.register_advance()
+                self.advance()
+                slice_or_getter.append(result.register(self.expression()))
+                if result.error: return result
+            else:
+                slice_or_getter.append(result.register(self.expression()))
+                if result.error: return result
+                if self.current_token.type == TT_COLON:
+                    result.register_advance()
+                    self.advance()
+
+                    if self.current_token.type == TT_RSBRACKET:
+                        slice_or_getter.append(None)
+
+                    else:
+                        slice_or_getter.append(result.register(self.expression()))
+                        if result.error: return result
+
+            if self.current_token.type == TT_RSBRACKET:
+                result.register_advance()
+                self.advance()
+            else:
+                return result.failure(InvalidSyntaxError(
+                    self.current_token.pos_start, self.current_token.pos_end,
+                    f"Expected ']'"
+                ))
+        return result.success(VarAccessNode(token, slice_or_getter))
     
     def arith_expr(self) -> BinOpNode:
         return self.bin_operator(self.term, (TT_PLUS, TT_MINUS))
