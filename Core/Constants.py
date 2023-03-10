@@ -1,8 +1,6 @@
 import string
 
-from Values.Number import Number
-
-from Utils.SymbolTable import SymbolTable
+from Values.Boolean import Boolean
 
 #################
 # ! CONSTANTS ! #
@@ -90,7 +88,6 @@ KEYWORDS = [
     'step',
     'while',
     'func',
-    'get',
     'append',
     'delete',
     'return',
@@ -99,7 +96,7 @@ KEYWORDS = [
 ]
 
 # Numbers
-Number.null = Number(0)
-Number.true = Number(1)
-Number.false = Number(0)
+Boolean.null = Boolean(None)
+Boolean.true = Boolean(True)
+Boolean.false = Boolean(False)
 

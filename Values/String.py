@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from Errors.RunTimeError import RTError
+
+from Values.Boolean import Boolean
 from Values.Number import Number
 from Values.Value import Value
 
@@ -18,6 +20,36 @@ class String(Value):
     def multiply(self, other : Number) -> tuple[String, RTError]:
         if isinstance(other, Number):
             return String(self.value * other.value).set_context(self.context), None
+        return None, Value.illegal_operation(self, other)
+    
+    def get_comparison_eq(self, other : String) -> tuple[Boolean, RTError]:
+        if isinstance(other, String):
+            return Boolean(self.value == other.value).set_context(self.context), None
+        return None, Value.illegal_operation(self, other)
+    
+    def get_comparison_ne(self, other : String) -> tuple[Boolean, RTError]:
+        if isinstance(other, String):
+            return Boolean(self.value != other.value).set_context(self.context), None
+        return None, Value.illegal_operation(self, other)
+    
+    def get_comparison_lt(self, other : String) -> tuple[Boolean, RTError]:
+        if isinstance(other, String):
+            return Boolean(self.value < other.value).set_context(self.context), None
+        return None, Value.illegal_operation(self, other)
+    
+    def get_comparison_gt(self, other : String) -> tuple[Boolean, RTError]:
+        if isinstance(other, String):
+            return Boolean(self.value > other.value).set_context(self.context), None
+        return None, Value.illegal_operation(self, other)
+    
+    def get_comparison_lte(self, other : String) -> tuple[Boolean, RTError]:
+        if isinstance(other, String):
+            return Boolean(self.value <= other.value).set_context(self.context), None
+        return None, Value.illegal_operation(self, other)
+    
+    def get_comparison_gte(self, other : String) -> tuple[Boolean, RTError]:
+        if isinstance(other, String):
+            return Boolean(self.value >= other.value).set_context(self.context), None
         return None, Value.illegal_operation(self, other)
     
     def is_true(self) -> bool:

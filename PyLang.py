@@ -10,6 +10,7 @@ from Values.String import String
 from Values.List import List
 from Values.BaseFunction import BaseFunction
 from Values.Value import Value
+from Values.Boolean import Boolean
 
 from Nodes.BinOp import BinOpNode
 from Nodes.UnaryOp import UnaryOpNode
@@ -78,7 +79,7 @@ class BuiltInFunction(BaseFunction):
 
     def execute_print(self, exec_context : Context) -> RTResult:
         print(str(exec_context.symbol_table.get('value')))
-        return RTResult().success(Number.null)
+        return RTResult().success(Boolean.null)
     execute_print.arg_names = ["value"]
 
     def execute_string(self, exec_context : Context) -> RTResult:
@@ -124,7 +125,7 @@ class BuiltInFunction(BaseFunction):
 
     def execute_clear(self, exec_context : Context) -> RTResult:
         os.system('cls' if os.name == 'nt' else 'clear')
-        return RTResult().success(Number.null)
+        return RTResult().success(Boolean.null)
     execute_clear.arg_names = []
 
     def execute_is_int(self, exec_context : Context) -> RTResult:
@@ -160,7 +161,7 @@ class BuiltInFunction(BaseFunction):
         
         list.elements.append(value)
 
-        return RTResult().success(Number.null)
+        return RTResult().success(Boolean.null)
     execute_append.arg_names = ["list", "value"]
 
     def execute_pop(self, exec_context : Context) -> RTResult:
@@ -242,7 +243,7 @@ class BuiltInFunction(BaseFunction):
 
         list1.elements.extend(list2.elements)
 
-        return RTResult().success(Number.null)
+        return RTResult().success(Boolean.null)
     execute_extend.arg_names = ["list1", "list2"]
 
     def execute_sqrt(self, exec_context : Context) -> RTResult:
@@ -339,7 +340,7 @@ class BuiltInFunction(BaseFunction):
                 exec_context
             ))
         
-        return RTResult().success(Number.null)
+        return RTResult().success(Boolean.null)
     execute_run.arg_names = ["file"]
 
     def execute_import(self, exec_context : Context) -> RTResult:
@@ -374,8 +375,30 @@ class BuiltInFunction(BaseFunction):
                 exec_context
             ))
         
-        return RTResult().success(Number.null)
+        return RTResult().success(Boolean.null)
     execute_import.arg_names = ["file"]
+
+    def execute_type(self, exec_context : Context) -> RTResult:
+        value = exec_context.symbol_table.get('value')
+
+        dict = {
+            Number : "number",
+            String : "str",
+            List : "list",
+            BaseFunction : "function",
+            BuiltInFunction : "function",
+            Boolean.null : "null",
+            Boolean : "bool",
+        }
+
+        return_value = dict[type(value)]
+        if return_value == "number":
+            if type(value.value) == int:
+                return_value = "int"
+            else:
+                return_value = "float"
+        return RTResult().success(String(return_value))
+    execute_type.arg_names = ["value"]
 
 class Function(BaseFunction):
     def __init__(self, name : Token, body_node : BinOpNode, arg_names : list[Token], auto_return) -> None:
@@ -395,7 +418,7 @@ class Function(BaseFunction):
         value = result.register(interpreter.visit(self.body_node, exec_context))
         if result.should_return() and result.func_return_value == None: return result
 
-        return_value = (value if self.auto_return else None) or result.func_return_value or Number.null
+        return_value = (value if self.auto_return else None) or result.func_return_value or Boolean.null
 
         return result.success(return_value)
     
@@ -429,17 +452,18 @@ BuiltInFunction.len                 = BuiltInFunction("len")
 BuiltInFunction.sum                 = BuiltInFunction("sum")
 BuiltInFunction.run                 = BuiltInFunction("run")
 BuiltInFunction.import_module       = BuiltInFunction("import")
+BuiltInFunction.type                = BuiltInFunction("type")
 
 # Public symbol table
 global_symbol_table = SymbolTable()
 _FileMain = True
 
 # * Default values *
-global_symbol_table.set("null", Number.null)
-global_symbol_table.set("False", Number.false)
-global_symbol_table.set("false", Number.false)
-global_symbol_table.set("True", Number.true)
-global_symbol_table.set("true", Number.true)
+global_symbol_table.set("null", Boolean.null)
+global_symbol_table.set("False", Boolean.false)
+global_symbol_table.set("false", Boolean.false)
+global_symbol_table.set("True", Boolean.true)
+global_symbol_table.set("true", Boolean.true)
 
 # * Built in functions *
 global_symbol_table.set("print", BuiltInFunction.print)
@@ -455,13 +479,14 @@ global_symbol_table.set("is_list", BuiltInFunction.is_list)
 global_symbol_table.set("is_string", BuiltInFunction.is_string)
 global_symbol_table.set("append", BuiltInFunction.append)
 global_symbol_table.set("pop", BuiltInFunction.pop)
-global_symbol_table.set("get_value", BuiltInFunction.get)
+global_symbol_table.set("get", BuiltInFunction.get)
 global_symbol_table.set("extend", BuiltInFunction.extend)
 global_symbol_table.set("sqrt", BuiltInFunction.sqrt)
 global_symbol_table.set("len", BuiltInFunction.len)
 global_symbol_table.set("sum", BuiltInFunction.sum)
 global_symbol_table.set("run", BuiltInFunction.run)
 global_symbol_table.set("import", BuiltInFunction.import_module)
+global_symbol_table.set("type", BuiltInFunction.type)
 
 ###################
 # ! INTERPRETER ! #
@@ -679,7 +704,7 @@ class Interpreter:
         body_node = node.body_node
         arg_names = [arg_name.value for arg_name in node.arg_name_tokens]
 
-        func_value = Function(func_name, body_node, arg_names, node.auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
+        func_value = Function(func_name, body_node, arg_names, node.auto_return).sename_nodet_context(context).set_pos(node.pos_start, node.pos_end)
 
         if node.var_name_token:
             context.symbol_table.set(func_name, func_value)
@@ -711,7 +736,7 @@ class Interpreter:
             value = result.register(self.visit(node.return_node, context))
             if result.should_return(): return result
         else:
-            value = Number.null
+            value = Boolean.null
 
         return result.success_return(value)
     
