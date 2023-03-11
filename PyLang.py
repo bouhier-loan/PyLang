@@ -79,9 +79,14 @@ class BuiltInFunction(BaseFunction):
     ########################
 
     def execute_print(self, exec_context : Context) -> RTResult:
-        print(str(exec_context.symbol_table.get('value')))
+        print(str(exec_context.symbol_table.get('value')), end='')
         return RTResult().success(Boolean.null)
     execute_print.arg_names = ["value"]
+
+    def execute_println(self, exec_context : Context) -> RTResult:
+        print(str(exec_context.symbol_table.get('value')))
+        return RTResult().success(Boolean.null)
+    execute_println.arg_names = ["value"]
 
     def execute_string(self, exec_context : Context) -> RTResult:
         try:
@@ -120,34 +125,14 @@ class BuiltInFunction(BaseFunction):
     execute_float.arg_names = ["value"]
 
     def execute_input(self, exec_context : Context) -> RTResult:
-        text = input(exec_context.symbol_table.get('value'))
+        text = input()
         return RTResult().success(String(text))
-    execute_input.arg_names = ["value"]
+    execute_input.arg_names = []
 
     def execute_clear(self, exec_context : Context) -> RTResult:
         os.system('cls' if os.name == 'nt' else 'clear')
         return RTResult().success(Boolean.null)
     execute_clear.arg_names = []
-
-    def execute_is_int(self, exec_context : Context) -> RTResult:
-        is_int = type(exec_context.symbol_table.get('value').value) == int
-        return RTResult().success(Number.true if is_int else Number.false)
-    execute_is_int.arg_names = ["value"]
-
-    def execute_is_float(self, exec_context : Context) -> RTResult:
-        is_float = type(exec_context.symbol_table.get('value').value) == float
-        return RTResult().success(Number.true if is_float else Number.false)
-    execute_is_float.arg_names = ["value"]
-
-    def execute_is_string(self, exec_context : Context) -> RTResult:
-        is_string = type(exec_context.symbol_table.get('value').value) == str
-        return RTResult().success(Number.true if is_string else Number.false)
-    execute_is_string.arg_names = ["value"]
-
-    def execute_is_list(self, exec_context : Context) -> RTResult:
-        is_list = type(exec_context.symbol_table.get('value').value) == list
-        return RTResult().success(Number.true if is_list else Number.false)
-    execute_is_list.arg_names = ["value"]
 
     def execute_append(self, exec_context : Context) -> RTResult:
         list = exec_context.symbol_table.get('list')
@@ -401,6 +386,34 @@ class BuiltInFunction(BaseFunction):
         return RTResult().success(String(return_value))
     execute_type.arg_names = ["value"]
 
+    def execute_upper(self, exec_context : Context) -> RTResult:
+        value = exec_context.symbol_table.get('value')
+
+        if not isinstance(value, String):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Argument must be STRING",
+                exec_context
+            ))
+        
+        return_value = value.value.upper()
+        return RTResult().success(String(return_value))
+    execute_upper.arg_names = ["value"]
+
+    def execute_lower(self, exec_context : Context) -> RTResult:
+        value = exec_context.symbol_table.get('value')
+
+        if not isinstance(value, String):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Argument must be STRING",
+                exec_context
+            ))
+        
+        return_value = value.value.lower()
+        return RTResult().success(String(return_value))
+    execute_lower.arg_names = ["value"]
+
 class Function(BaseFunction):
     def __init__(self, name : Token, body_node : BinOpNode, arg_names : list[Token], auto_return) -> None:
         super().__init__(name)
@@ -435,15 +448,12 @@ class Function(BaseFunction):
 
 # Builtin functions
 BuiltInFunction.print               = BuiltInFunction("print")
+BuiltInFunction.println             = BuiltInFunction("println")
 BuiltInFunction.string              = BuiltInFunction("string")
 BuiltInFunction.int                 = BuiltInFunction("int")
 BuiltInFunction.float               = BuiltInFunction("float")
 BuiltInFunction.input               = BuiltInFunction("input")
 BuiltInFunction.clear               = BuiltInFunction("clear")
-BuiltInFunction.is_int              = BuiltInFunction("is_int")
-BuiltInFunction.is_float            = BuiltInFunction("is_float")
-BuiltInFunction.is_string           = BuiltInFunction("is_string")
-BuiltInFunction.is_list             = BuiltInFunction("is_list")
 BuiltInFunction.append              = BuiltInFunction("append")
 BuiltInFunction.pop                 = BuiltInFunction("pop")
 BuiltInFunction.get                 = BuiltInFunction("get")
@@ -454,6 +464,8 @@ BuiltInFunction.sum                 = BuiltInFunction("sum")
 BuiltInFunction.run                 = BuiltInFunction("run")
 BuiltInFunction.import_module       = BuiltInFunction("import")
 BuiltInFunction.type                = BuiltInFunction("type")
+BuiltInFunction.upper               = BuiltInFunction("upper")
+BuiltInFunction.lower               = BuiltInFunction("lower")
 
 # Public symbol table
 global_symbol_table = SymbolTable()
@@ -474,10 +486,6 @@ global_symbol_table.set("float", BuiltInFunction.float)
 global_symbol_table.set("input", BuiltInFunction.input)
 global_symbol_table.set("clear", BuiltInFunction.clear)
 global_symbol_table.set("cls", BuiltInFunction.clear)
-global_symbol_table.set("is_int", BuiltInFunction.is_int)
-global_symbol_table.set("is_float", BuiltInFunction.is_float)
-global_symbol_table.set("is_list", BuiltInFunction.is_list)
-global_symbol_table.set("is_string", BuiltInFunction.is_string)
 global_symbol_table.set("append", BuiltInFunction.append)
 global_symbol_table.set("pop", BuiltInFunction.pop)
 global_symbol_table.set("get", BuiltInFunction.get)
@@ -488,6 +496,10 @@ global_symbol_table.set("sum", BuiltInFunction.sum)
 global_symbol_table.set("run", BuiltInFunction.run)
 global_symbol_table.set("import", BuiltInFunction.import_module)
 global_symbol_table.set("type", BuiltInFunction.type)
+global_symbol_table.set("upper", BuiltInFunction.upper)
+global_symbol_table.set("lower", BuiltInFunction.lower)
+global_symbol_table.set("println", BuiltInFunction.println)
+
 
 ###################
 # ! INTERPRETER ! #

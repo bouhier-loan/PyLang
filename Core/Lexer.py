@@ -37,7 +37,6 @@ class Lexer:
         return False
     
     def skip_multiline_comment(self) -> bool:
-        print('> Skipping multiline comment')
 
         last_char = ''
 
@@ -57,7 +56,6 @@ class Lexer:
             return True
         
         self.advance()
-        print('> Multiline comment skipped : ' + (str(self.current_char) if self.current_char != None else 'EOF'))
         return False
     
     def manage_testing(self) -> bool:
@@ -244,7 +242,6 @@ class Lexer:
             token_type = TT_DIVEQ
         
         if self.current_char == '*':
-            print(self.current_char)
             return self.skip_multiline_comment()
         
         return Token(token_type, pos_start=pos_start, pos_end=self.pos)

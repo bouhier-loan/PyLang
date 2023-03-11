@@ -1,0 +1,244 @@
+/*
+
+0  - OPERATORS
+1  - VARS
+2  - IF STATEMENTS
+3  - FOR LOOPS
+4  - WHILE LOOPS
+5  - FUNCTIONS
+6  - TESTS AND COMMENTS
+
+---------------------------------
+
+0 - OPERATORS
+
+Operators are used to perform operations on variables and values.
+
+a. usage
+
+-  <value> +  <value>  - addition
+-  <value> -  <value>  - subtraction
+-  <value> *  <value>  - multiplication
+-  <value> /  <value>  - division
+-  <value> %  <value>  - modulus
+-  <value> // <value>  - floor division
+-  <value> ** <value>  - exponentiation
+
+---------------------------------
+
+1 - VARS
+
+Variables are used to store data and give it a name.
+
+a. types
+-   int (integer)           - whole numbers         - 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+-   float (floating point)  - decimal numbers       - 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, ...
+-   str (string)            - text                  - "Hello", "World", "Hello World", ...
+-   bool (boolean)          - true, false or null   - True, False, null
+-   list                    - array                 - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...]
+
+b. usage assignment
+var <name> = <value>
+*/
+
+var a = 1
+var thisIsAText = "Hello World!"
+
+/*
+b. advanced usage
+var <name> += <value>
+var <name> -= <value>
+var <name> *= <value>
+var <name> /= <value>
+var a++
+var a--
+*/
+
+var a += 10
+
+/*
+---------------------------------
+
+2 - IF STATEMENTS
+
+If statements are used to check if a condition is true or false and execute code based on that.
+
+a. conditionals
+-   <something> == <something>  - equal to
+-   <something> != <something>  - not equal to
+-   <something> < <something>   - less than
+-   <something> > <something>   - greater than
+-   <something> <= <something>  - less than or equal to
+-   <something> >= <something>  - greater than or equal to
+
+b. usage
+if <condition> { <code> }
+
+if <condition> { <code> } else { <code> }
+
+if <condition> { <code> } elif <condition> { <code> } else { <code> }
+
+*/
+
+if a == 10 {
+    println("a is 10")
+} elif a == 11 {
+    println("a is 11")
+} else {
+    println("a is not 10 or 11")
+}
+
+/*
+---------------------------------
+
+3 - FOR LOOPS
+
+For loops are used to repeat a piece of code a certain number of times.
+
+a. usage
+for <name> = <start> to <end> { <code> }
+
+for <name> = <start> to <end> step <step> { <code> }
+
+for <name> in <list> { <code> }
+
+note: the for in loop is used to loop through all the elements in a list or string
+*/
+println("----------")
+
+for i = 1 to 10 {
+    println(i)
+}
+
+println("----------")
+
+for i = 1 to 10 step 2 {
+    println(i)
+}
+
+println("----------")
+
+var list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+for i in list {
+    println(i)
+}
+
+/*
+---------------------------------
+
+4 - WHILE LOOPS
+
+While loops are used to repeat a piece of code while a condition is true.
+
+a. usage
+while <condition> { <code> }
+*/
+
+println("----------")
+
+var i = 10
+while i >= 0 {
+    println(i)
+    var i--
+}
+
+/*
+---------------------------------
+
+2, 3, 4 - Advanced Usage
+
+You can use the following keywords to break out or skip a loop
+
+-   break       - breaks out of a loop
+-   continue    - skips the current iteration of a loop
+
+
+---------------------------------
+
+5 - FUNCTIONS
+
+Functions are a way to group code together and reuse it later.
+
+a. usage assignment
+func <name>(<args>) { <code> }
+
+note: the return keyword is used to return a value from a function
+*/
+
+func add(a, b) {
+    return a + b
+}
+
+/*
+b. usage call
+<name>(<args>)
+*/
+println("----------")
+
+println(add(1, 2))
+
+/*
+c. Built-in functions 
+
+-   print(<something>)                  - prints something to the console
+-   println(<something>)                - prints something to the console and adds a new line
+-   input()                             - gets input from the user
+-   clear()                             - clears the console
+
+-   run(<something>)                    - runs a file
+-   import(<something>)                 - imports a file
+note: the file path needs to be relative to the current file and the file extension needs to be .pyl
+ex: import("test")
+ex: import("someFolder.test")
+note: the import keyword is used to import a file and use its functions and variables
+
+-   str(<something>)                    - converts something to a string
+-   int(<something>)                    - converts something to an integer
+-   float(<something>)                  - converts something to a float
+
+-   len(<something>)                    - gets the length of something (list or string)
+-   pop(<something>)                    - removes the last element from a list
+-   append(<something>)                 - adds an element to the end of a list
+-   get(<something>, <index>)           - gets an element from a list
+-   extend(<something>, <something>)    - adds all the elements from one list to another
+-   sum(<something>)                    - adds all the elements in a list
+
+-   sqrt(<something>)                   - gets the square root of something
+-   type(<something>)                   - gets the type of something
+-   upper(<something>)                  - converts a string to uppercase
+-   lower(<something>)                  - converts a string to lowercase
+
+---------------------------------
+
+6.1 - TESTS
+
+Testing is a way to check if a function or a piece of code is working correctly.
+to use it just add a "?" before the code you want to test and run the file with the -test option
+
+>   pyl -test <file>
+
+a. usage
+? <code>
+*/
+
+? println("Hello World!")
+
+/*
+
+6.2 - COMMENTS
+
+Comments are used to add notes to your code.
+
+a. usage
+*/
+
+# this is a comment
+
+/*
+this
+is
+a
+multi
+line
+comment
+*/
