@@ -21,6 +21,7 @@ from Nodes.VarAccess import VarAccessNode
 from Nodes.If import IfNode
 from Nodes.VarAssign import VarAssignNode
 from Nodes.For import ForNode
+from Nodes.ForIn import ForInNode
 from Nodes.FuncDef import FuncDefNode
 from Nodes.Call import CallNode
 from Nodes.While import WhileNode
@@ -492,7 +493,6 @@ global_symbol_table.set("type", BuiltInFunction.type)
 # ! INTERPRETER ! #
 ###################
 class Interpreter:
-
     def visit(self, node, context : Context) -> RTResult:
         method_name = f'visit_{type(node).__name__}'
         method = getattr(self, method_name, self.no_visit_method)
@@ -581,26 +581,28 @@ class Interpreter:
                 f"'{var_name}' is not defined",
                 context
             ))
+        
+        if node.slice_or_getter != None:
 
-        if len(node.slice_or_getter) == 1:
-            ope1 : Number = result.register(self.visit(node.slice_or_getter[0], context))
-            if result.should_return(): return result
-            value, error = value.get(ope1)
-            if error: return result.failure(error)
-
-        elif len(node.slice_or_getter) == 2:
-            ope1 = node.slice_or_getter[0]
-            if ope1 != None:
-                ope1 = result.register(self.visit(ope1, context))
+            if len(node.slice_or_getter) == 1:
+                ope1 : Number = result.register(self.visit(node.slice_or_getter[0], context))
                 if result.should_return(): return result
+                value, error = value.get(ope1)
+                if error: return result.failure(error)
 
-            ope2 = node.slice_or_getter[1]
-            if ope2!= None:
-                ope2 = result.register(self.visit(ope2, context))
-                if result.should_return(): return result
+            elif len(node.slice_or_getter) == 2:
+                ope1 = node.slice_or_getter[0]
+                if ope1 != None:
+                    ope1 = result.register(self.visit(ope1, context))
+                    if result.should_return(): return result
 
-            value, error = value.get_slice(ope1, ope2)
-            if error: return result.failure(error)
+                ope2 = node.slice_or_getter[1]
+                if ope2!= None:
+                    ope2 = result.register(self.visit(ope2, context))
+                    if result.should_return(): return result
+
+                value, error = value.get_slice(ope1, ope2)
+                if error: return result.failure(error)
 
         
         value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
@@ -671,7 +673,7 @@ class Interpreter:
             recursion_count += 1
 
             value= result.register(self.visit(node.body_node, context))
-            if result.should_return() and result.loop_continue == False and result.loop_continue == False: return result
+            if result.should_return() and result.loop_continue == False: return result
 
             if result.loop_continue:
                 continue
@@ -684,6 +686,48 @@ class Interpreter:
         return result.success(
             List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
+    
+    def visit_ForInNode(self, node : ForInNode, context : Context) -> RTResult:
+        result = RTResult()
+        elements = []
+        recursion_count = 0
+
+        iterated_value = result.register(self.visit(node.iterated_value_node, context))
+        if result.should_return(): return result
+
+        if isinstance(iterated_value, String):
+            iterated_value = List([String(char) for char in iterated_value.value])
+            
+        if isinstance(iterated_value, List):
+            for i in range(len(iterated_value.elements)):
+                context.symbol_table.set(node.var_name_token.value, iterated_value.elements[i])
+                if recursion_count > LOOP_MAX_RECUR:
+                    return result.failure(RTError(
+                        node.pos_start, node.pos_end,
+                        f"Max recursion limit reached ({LOOP_MAX_RECUR})",
+                        context
+                    ))
+                recursion_count += 1
+
+                value = result.register(self.visit(node.body_node, context))
+                if result.should_return() and result.loop_continue == False: return result
+
+                if result.loop_continue:
+                    continue
+
+                if result.loop_break:
+                    break
+
+                elements.append(value)
+            return result.success(
+                List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+            )
+        else:
+            return result.failure(RTError(
+                node.pos_start, node.pos_end,
+                f"Can't iterate over {iterated_value}",
+                context
+            ))
 
     def visit_WhileNode(self, node : WhileNode, context : Context) -> RTResult:
         result = RTResult()

@@ -47,8 +47,10 @@ if-expr     : KEYWORD:if expr LCBRACKET
               statement
             | (NEWLINE statements RCBRACKET)
 
-for-expr    : KEYWORD:for IDENTIFIER EQ expr KEYWORD:to expr 
-            : (KEYWORD:step expr)? LCBRACKET
+for-expr    : KEYWORD:for IDENTIFIER 
+            : EQ expr KEYWORD:to expr (KEYWORD:step expr)?
+            | KEYWORD:in INDENTIFIER
+            : LCBRACKET
             : expr
             | (NEWLINE statements RCBRACKET)
 

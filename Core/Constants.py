@@ -93,6 +93,7 @@ KEYWORDS = [
     'return',
     'break',
     'continue',
+    'in',
 ]
 
 # Numbers
