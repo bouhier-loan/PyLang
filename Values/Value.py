@@ -25,6 +25,12 @@ class Value:
     def add(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     
+    def get(self, other) -> tuple[any, RTError]:
+        return None, self.illegal_operation()
+    
+    def get_slice(self, other, other2 = None) -> tuple[any, RTError]:
+        return None, self.illegal_operation()
+    
     def subtract(self, other) -> tuple[any, RTError]:
         return None, self.illegal_operation()
     

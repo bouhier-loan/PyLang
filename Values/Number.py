@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from Errors.RunTimeError import RTError
+
 from Utils.Context import Context
 from Utils.Position import Position
+
 from Values.Value import Value
+from Values.Boolean import Boolean
 
 
 class Number(Value):
@@ -87,59 +90,53 @@ class Number(Value):
         copy.set_context(self.context)
         return copy
     
-    def get_comparison_eq(self, other) -> tuple[Number, RTError]:
+    def get_comparison_eq(self, other) -> tuple[Boolean, RTError]:
         if isinstance(other, Number):
-            return Number(int(self.value == other.value)).set_context(self.context), None
+            return Boolean(self.value == other.value).set_context(self.context), None
         else:
             return None, Value.illegal_operation(self.pos_start, other.pos_end)
     
-    def get_comparison_ne(self, other) -> tuple[Number, RTError]:
+    def get_comparison_ne(self, other) -> tuple[Boolean, RTError]:
         if isinstance(other, Number):
-            return Number(int(self.value != other.value)).set_context(self.context), None
+            return Boolean(self.value != other.value).set_context(self.context), None
         else:
             return None, Value.illegal_operation(self.pos_start, other.pos_end)
     
-    def get_comparison_lt(self, other) -> tuple[Number, RTError]:
+    def get_comparison_lt(self, other) -> tuple[Boolean, RTError]:
         if isinstance(other, Number):
-            return Number(int(self.value < other.value)).set_context(self.context), None
+            return Boolean(self.value < other.value).set_context(self.context), None
         else:
             return None, Value.illegal_operation(self.pos_start, other.pos_end)
     
-    def get_comparison_gt(self, other) -> tuple[Number, RTError]:
+    def get_comparison_gt(self, other) -> tuple[Boolean, RTError]:
         if isinstance(other, Number):
-            return Number(int(self.value > other.value)).set_context(self.context), None
+            return Boolean(self.value > other.value).set_context(self.context), None
         else:
             return None, Value.illegal_operation(self.pos_start, other.pos_end)
     
-    def get_comparison_lte(self, other) -> tuple[Number, RTError]:
+    def get_comparison_lte(self, other) -> tuple[Boolean, RTError]:
         if isinstance(other, Number):
-            return Number(int(self.value <= other.value)).set_context(self.context), None
+            return Boolean(self.value <= other.value).set_context(self.context), None
         else:
             return None, Value.illegal_operation(self.pos_start, other.pos_end)
     
-    def get_comparison_gte(self, other) -> tuple[Number, RTError]:
+    def get_comparison_gte(self, other) -> tuple[Boolean, RTError]:
         if isinstance(other, Number):
-            return Number(int(self.value >= other.value)).set_context(self.context), None
+            return Boolean(self.value >= other.value).set_context(self.context), None
         else:
             return None, Value.illegal_operation(self.pos_start, other.pos_end)
     
-    def get_and(self, other) -> tuple[Number, RTError]:
+    def get_and(self, other) -> tuple[Boolean, RTError]:
         if isinstance(other, Number):
-            return Number(int(self.value and other.value)).set_context(self.context), None
+            return Boolean(self.value and other.value).set_context(self.context), None
         else:
             return None, Value.illegal_operation(self.pos_start, other.pos_end)
         
-    def get_or(self, other) -> tuple[Number, RTError]:
+    def get_or(self, other) -> tuple[Boolean, RTError]:
         if isinstance(other, Number):
-            return Number(int(self.value or other.value)).set_context(self.context), None
+            return Boolean(self.value or other.value).set_context(self.context), None
         else:
             return None, Value.illegal_operation(self.pos_start, other.pos_end)
-    
-    def not_comp(self) -> tuple[Number, RTError]:
-        return Number(1 if self.value == 0 else 0).set_context(self.context), None
-    
-    def is_true(self) -> bool:
-        return self.value != 0
     
     def __repr__(self) -> str:
         return f'{self.value}'

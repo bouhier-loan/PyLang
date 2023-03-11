@@ -9,6 +9,7 @@ from Nodes.BinOp import BinOpNode
 from Nodes.List import ListNode
 from Nodes.If import IfNode
 from Nodes.For import ForNode
+from Nodes.ForIn import ForInNode
 from Nodes.While import WhileNode
 from Nodes.FuncDef import FuncDefNode
 from Nodes.Call import CallNode
@@ -363,79 +364,126 @@ class Parser:
         result.register_advance()
         self.advance()
 
-        if not self.current_token.type == TT_EQ:
-            return result.failure(InvalidSyntaxError(
-                self.current_token.pos_start, self.current_token.pos_end,
-                f"Expected '='"
-            ))
-        
-        result.register_advance()
-        self.advance()
-
-        start_value = result.register(self.expression())
-        if result.error: return result
-
-
-        if not self.current_token.matches(TT_KEYWORD, 'to'):
-            return result.failure(InvalidSyntaxError(
-                self.current_token.pos_start, self.current_token.pos_end,
-                f"Expected 'to'"
-            ))
-        
-        result.register_advance()
-        self.advance()
-
-        end_value = result.register(self.expression())
-        if result.error: return result
-
-
-        if self.current_token.matches(TT_KEYWORD, 'step'):
+        if self.current_token.type == TT_EQ:
             result.register_advance()
             self.advance()
 
-            step_value = result.register(self.expression())
-            if result.error: return result
-        else:
-            step_value = None
-        
-        if not self.current_token.type == TT_LCBRACKET:
-            return result.failure(InvalidSyntaxError(
-                self.current_token.pos_start, self.current_token.pos_end,
-                "Expected '{'"
-            ))
-        
-        result.register_advance()
-        self.advance()
-
-        if self.current_token.type == TT_NEWLINE:
-            result.register_advance()
-            self.advance()
-
-            body = result.register(self.statements())
+            start_value = result.register(self.expression())
             if result.error: return result
 
-            if not self.current_token.type == TT_RCBRACKET:
+
+            if not self.current_token.matches(TT_KEYWORD, 'to'):
                 return result.failure(InvalidSyntaxError(
                     self.current_token.pos_start, self.current_token.pos_end,
-                    "Expected '}'"
-                ))
-            
-            result.register_advance()
-            self.advance()
-        else:
-            body = result.register(self.expression())
-            if result.error: return result
-
-            if not self.current_token.type == TT_RCBRACKET:
-                return result.failure(InvalidSyntaxError(
-                    self.current_token.pos_start, self.current_token.pos_end,
-                    "Expected '}'"
+                    f"Expected 'to'"
                 ))
             
             result.register_advance()
             self.advance()
 
-        return result.success(ForNode(var_name, start_value, end_value, step_value, body))
+            end_value = result.register(self.expression())
+            if result.error: return result
+
+
+            if self.current_token.matches(TT_KEYWORD, 'step'):
+                result.register_advance()
+                self.advance()
+
+                step_value = result.register(self.expression())
+                if result.error: return result
+            else:
+                step_value = None
+            
+            if not self.current_token.type == TT_LCBRACKET:
+                return result.failure(InvalidSyntaxError(
+                    self.current_token.pos_start, self.current_token.pos_end,
+                    "Expected '{'"
+                ))
+            
+            result.register_advance()
+            self.advance()
+
+            if self.current_token.type == TT_NEWLINE:
+                result.register_advance()
+                self.advance()
+
+                body = result.register(self.statements())
+                if result.error: return result
+
+                if not self.current_token.type == TT_RCBRACKET:
+                    return result.failure(InvalidSyntaxError(
+                        self.current_token.pos_start, self.current_token.pos_end,
+                        "Expected '}'"
+                    ))
+                
+                result.register_advance()
+                self.advance()
+            else:
+                body = result.register(self.expression())
+                if result.error: return result
+
+                if not self.current_token.type == TT_RCBRACKET:
+                    return result.failure(InvalidSyntaxError(
+                        self.current_token.pos_start, self.current_token.pos_end,
+                        "Expected '}'"
+                    ))
+                
+                result.register_advance()
+                self.advance()
+
+            return result.success(ForNode(var_name, start_value, end_value, step_value, body))
+
+        elif self.current_token.matches(TT_KEYWORD, 'in'):
+            result.register_advance()
+            self.advance()
+
+            iterated_value = result.register(self.expression())
+            if result.error: return result
+
+            if not self.current_token.type == TT_LCBRACKET:
+                return result.failure(InvalidSyntaxError(
+                    self.current_token.pos_start, self.current_token.pos_end,
+                    "Expected '{'"
+                ))
+            
+            result.register_advance()
+            self.advance()
+
+            if self.current_token.type == TT_NEWLINE:
+                result.register_advance()
+                self.advance()
+
+                body = result.register(self.statements())
+                if result.error: return result
+
+                if not self.current_token.type == TT_RCBRACKET:
+                    return result.failure(InvalidSyntaxError(
+                        self.current_token.pos_start, self.current_token.pos_end,
+                        "Expected '}'"
+                    ))
+                
+                result.register_advance()
+                self.advance()
+            else:
+                body = result.register(self.expression())
+                if result.error: return result
+
+                if not self.current_token.type == TT_RCBRACKET:
+                    return result.failure(InvalidSyntaxError(
+                        self.current_token.pos_start, self.current_token.pos_end,
+                        "Expected '}'"
+                    ))
+                
+                result.register_advance()
+                self.advance()
+
+            return result.success(ForInNode(var_name, iterated_value, body))
+
+        else:
+            return result.failure(InvalidSyntaxError(
+                self.current_token.pos_start, self.current_token.pos_end,
+                f"Expected '=' or 'in'"
+            ))
 
 #* WHILE EXPRESSIONS
 
@@ -661,9 +709,9 @@ class Parser:
             return result.success(StringNode(token))
         
         elif token.type == TT_IDENTIFIER:
-            result.register_advance()
-            self.advance()
-            return result.success(VarAccessNode(token))
+            var_expr = result.register(self.var_expr())
+            if result.error: return result
+            return result.success(var_expr)
 
         elif token.type == TT_LPAREN:
             result.register_advance()
@@ -727,6 +775,55 @@ class Parser:
 
     def term(self) -> BinOpNode:
         return self.bin_operator(self.factor, (TT_MUL, TT_DIV, TT_MOD, TT_QUO))
+
+    def var_expr(self) -> ParseResult:
+        result = ParseResult()
+        token = self.current_token
+        slice_or_getter = []
+
+        if token.type != TT_IDENTIFIER:
+            return result.failure(InvalidSyntaxError(
+                token.pos_start, token.pos_end,
+                f"Expected IDENTIFIER"
+            ))
+
+        result.register_advance()
+        self.advance()
+
+        
+        if self.current_token.type == TT_LSBRACKET:
+            result.register_advance()
+            self.advance()
+
+            if self.current_token.type == TT_COLON:
+                slice_or_getter.append(None)
+                result.register_advance()
+                self.advance()
+                slice_or_getter.append(result.register(self.expression()))
+                if result.error: return result
+            else:
+                slice_or_getter.append(result.register(self.expression()))
+                if result.error: return result
+                if self.current_token.type == TT_COLON:
+                    result.register_advance()
+                    self.advance()
+
+                    if self.current_token.type == TT_RSBRACKET:
+                        slice_or_getter.append(None)
+
+                    else:
+                        slice_or_getter.append(result.register(self.expression()))
+                        if result.error: return result
+
+            if self.current_token.type == TT_RSBRACKET:
+                result.register_advance()
+                self.advance()
+            else:
+                return result.failure(InvalidSyntaxError(
+                    self.current_token.pos_start, self.current_token.pos_end,
+                    f"Expected ']'"
+                ))
+        return result.success(VarAccessNode(token, slice_or_getter))
     
     def arith_expr(self) -> BinOpNode:
         return self.bin_operator(self.term, (TT_PLUS, TT_MINUS))

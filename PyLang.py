@@ -10,6 +10,7 @@ from Values.String import String
 from Values.List import List
 from Values.BaseFunction import BaseFunction
 from Values.Value import Value
+from Values.Boolean import Boolean
 
 from Nodes.BinOp import BinOpNode
 from Nodes.UnaryOp import UnaryOpNode
@@ -20,6 +21,7 @@ from Nodes.VarAccess import VarAccessNode
 from Nodes.If import IfNode
 from Nodes.VarAssign import VarAssignNode
 from Nodes.For import ForNode
+from Nodes.ForIn import ForInNode
 from Nodes.FuncDef import FuncDefNode
 from Nodes.Call import CallNode
 from Nodes.While import WhileNode
@@ -77,9 +79,14 @@ class BuiltInFunction(BaseFunction):
     ########################
 
     def execute_print(self, exec_context : Context) -> RTResult:
-        print(str(exec_context.symbol_table.get('value')))
-        return RTResult().success(Number.null)
+        print(str(exec_context.symbol_table.get('value')), end='')
+        return RTResult().success(Boolean.null)
     execute_print.arg_names = ["value"]
+
+    def execute_println(self, exec_context : Context) -> RTResult:
+        print(str(exec_context.symbol_table.get('value')))
+        return RTResult().success(Boolean.null)
+    execute_println.arg_names = ["value"]
 
     def execute_string(self, exec_context : Context) -> RTResult:
         try:
@@ -118,34 +125,14 @@ class BuiltInFunction(BaseFunction):
     execute_float.arg_names = ["value"]
 
     def execute_input(self, exec_context : Context) -> RTResult:
-        text = input(exec_context.symbol_table.get('value'))
+        text = input()
         return RTResult().success(String(text))
-    execute_input.arg_names = ["value"]
+    execute_input.arg_names = []
 
     def execute_clear(self, exec_context : Context) -> RTResult:
         os.system('cls' if os.name == 'nt' else 'clear')
-        return RTResult().success(Number.null)
+        return RTResult().success(Boolean.null)
     execute_clear.arg_names = []
-
-    def execute_is_int(self, exec_context : Context) -> RTResult:
-        is_int = type(exec_context.symbol_table.get('value').value) == int
-        return RTResult().success(Number.true if is_int else Number.false)
-    execute_is_int.arg_names = ["value"]
-
-    def execute_is_float(self, exec_context : Context) -> RTResult:
-        is_float = type(exec_context.symbol_table.get('value').value) == float
-        return RTResult().success(Number.true if is_float else Number.false)
-    execute_is_float.arg_names = ["value"]
-
-    def execute_is_string(self, exec_context : Context) -> RTResult:
-        is_string = type(exec_context.symbol_table.get('value').value) == str
-        return RTResult().success(Number.true if is_string else Number.false)
-    execute_is_string.arg_names = ["value"]
-
-    def execute_is_list(self, exec_context : Context) -> RTResult:
-        is_list = type(exec_context.symbol_table.get('value').value) == list
-        return RTResult().success(Number.true if is_list else Number.false)
-    execute_is_list.arg_names = ["value"]
 
     def execute_append(self, exec_context : Context) -> RTResult:
         list = exec_context.symbol_table.get('list')
@@ -160,7 +147,7 @@ class BuiltInFunction(BaseFunction):
         
         list.elements.append(value)
 
-        return RTResult().success(Number.null)
+        return RTResult().success(Boolean.null)
     execute_append.arg_names = ["list", "value"]
 
     def execute_pop(self, exec_context : Context) -> RTResult:
@@ -242,7 +229,7 @@ class BuiltInFunction(BaseFunction):
 
         list1.elements.extend(list2.elements)
 
-        return RTResult().success(Number.null)
+        return RTResult().success(Boolean.null)
     execute_extend.arg_names = ["list1", "list2"]
 
     def execute_sqrt(self, exec_context : Context) -> RTResult:
@@ -339,7 +326,7 @@ class BuiltInFunction(BaseFunction):
                 exec_context
             ))
         
-        return RTResult().success(Number.null)
+        return RTResult().success(Boolean.null)
     execute_run.arg_names = ["file"]
 
     def execute_import(self, exec_context : Context) -> RTResult:
@@ -374,8 +361,58 @@ class BuiltInFunction(BaseFunction):
                 exec_context
             ))
         
-        return RTResult().success(Number.null)
+        return RTResult().success(Boolean.null)
     execute_import.arg_names = ["file"]
+
+    def execute_type(self, exec_context : Context) -> RTResult:
+        value = exec_context.symbol_table.get('value')
+
+        dict = {
+            Number : "number",
+            String : "str",
+            List : "list",
+            BaseFunction : "function",
+            BuiltInFunction : "function",
+            Boolean.null : "null",
+            Boolean : "bool",
+        }
+
+        return_value = dict[type(value)]
+        if return_value == "number":
+            if type(value.value) == int:
+                return_value = "int"
+            else:
+                return_value = "float"
+        return RTResult().success(String(return_value))
+    execute_type.arg_names = ["value"]
+
+    def execute_upper(self, exec_context : Context) -> RTResult:
+        value = exec_context.symbol_table.get('value')
+
+        if not isinstance(value, String):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Argument must be STRING",
+                exec_context
+            ))
+        
+        return_value = value.value.upper()
+        return RTResult().success(String(return_value))
+    execute_upper.arg_names = ["value"]
+
+    def execute_lower(self, exec_context : Context) -> RTResult:
+        value = exec_context.symbol_table.get('value')
+
+        if not isinstance(value, String):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Argument must be STRING",
+                exec_context
+            ))
+        
+        return_value = value.value.lower()
+        return RTResult().success(String(return_value))
+    execute_lower.arg_names = ["value"]
 
 class Function(BaseFunction):
     def __init__(self, name : Token, body_node : BinOpNode, arg_names : list[Token], auto_return) -> None:
@@ -395,7 +432,7 @@ class Function(BaseFunction):
         value = result.register(interpreter.visit(self.body_node, exec_context))
         if result.should_return() and result.func_return_value == None: return result
 
-        return_value = (value if self.auto_return else None) or result.func_return_value or Number.null
+        return_value = (value if self.auto_return else None) or result.func_return_value or Boolean.null
 
         return result.success(return_value)
     
@@ -411,15 +448,12 @@ class Function(BaseFunction):
 
 # Builtin functions
 BuiltInFunction.print               = BuiltInFunction("print")
+BuiltInFunction.println             = BuiltInFunction("println")
 BuiltInFunction.string              = BuiltInFunction("string")
 BuiltInFunction.int                 = BuiltInFunction("int")
 BuiltInFunction.float               = BuiltInFunction("float")
 BuiltInFunction.input               = BuiltInFunction("input")
 BuiltInFunction.clear               = BuiltInFunction("clear")
-BuiltInFunction.is_int              = BuiltInFunction("is_int")
-BuiltInFunction.is_float            = BuiltInFunction("is_float")
-BuiltInFunction.is_string           = BuiltInFunction("is_string")
-BuiltInFunction.is_list             = BuiltInFunction("is_list")
 BuiltInFunction.append              = BuiltInFunction("append")
 BuiltInFunction.pop                 = BuiltInFunction("pop")
 BuiltInFunction.get                 = BuiltInFunction("get")
@@ -429,17 +463,20 @@ BuiltInFunction.len                 = BuiltInFunction("len")
 BuiltInFunction.sum                 = BuiltInFunction("sum")
 BuiltInFunction.run                 = BuiltInFunction("run")
 BuiltInFunction.import_module       = BuiltInFunction("import")
+BuiltInFunction.type                = BuiltInFunction("type")
+BuiltInFunction.upper               = BuiltInFunction("upper")
+BuiltInFunction.lower               = BuiltInFunction("lower")
 
 # Public symbol table
 global_symbol_table = SymbolTable()
 _FileMain = True
 
 # * Default values *
-global_symbol_table.set("null", Number.null)
-global_symbol_table.set("False", Number.false)
-global_symbol_table.set("false", Number.false)
-global_symbol_table.set("True", Number.true)
-global_symbol_table.set("true", Number.true)
+global_symbol_table.set("null", Boolean.null)
+global_symbol_table.set("False", Boolean.false)
+global_symbol_table.set("false", Boolean.false)
+global_symbol_table.set("True", Boolean.true)
+global_symbol_table.set("true", Boolean.true)
 
 # * Built in functions *
 global_symbol_table.set("print", BuiltInFunction.print)
@@ -449,25 +486,25 @@ global_symbol_table.set("float", BuiltInFunction.float)
 global_symbol_table.set("input", BuiltInFunction.input)
 global_symbol_table.set("clear", BuiltInFunction.clear)
 global_symbol_table.set("cls", BuiltInFunction.clear)
-global_symbol_table.set("is_int", BuiltInFunction.is_int)
-global_symbol_table.set("is_float", BuiltInFunction.is_float)
-global_symbol_table.set("is_list", BuiltInFunction.is_list)
-global_symbol_table.set("is_string", BuiltInFunction.is_string)
 global_symbol_table.set("append", BuiltInFunction.append)
 global_symbol_table.set("pop", BuiltInFunction.pop)
-global_symbol_table.set("get_value", BuiltInFunction.get)
+global_symbol_table.set("get", BuiltInFunction.get)
 global_symbol_table.set("extend", BuiltInFunction.extend)
 global_symbol_table.set("sqrt", BuiltInFunction.sqrt)
 global_symbol_table.set("len", BuiltInFunction.len)
 global_symbol_table.set("sum", BuiltInFunction.sum)
 global_symbol_table.set("run", BuiltInFunction.run)
 global_symbol_table.set("import", BuiltInFunction.import_module)
+global_symbol_table.set("type", BuiltInFunction.type)
+global_symbol_table.set("upper", BuiltInFunction.upper)
+global_symbol_table.set("lower", BuiltInFunction.lower)
+global_symbol_table.set("println", BuiltInFunction.println)
+
 
 ###################
 # ! INTERPRETER ! #
 ###################
 class Interpreter:
-
     def visit(self, node, context : Context) -> RTResult:
         method_name = f'visit_{type(node).__name__}'
         method = getattr(self, method_name, self.no_visit_method)
@@ -548,13 +585,37 @@ class Interpreter:
     def visit_VarAccessNode(self, node : VarAccessNode, context : Context) -> RTResult:
         result = RTResult()
         var_name = node.var_name_token.value
-        value = context.symbol_table.get(var_name)
+        value : Value = context.symbol_table.get(var_name)
+
         if not value:
             return result.failure(RTError(
                 node.pos_start, node.pos_end,
                 f"'{var_name}' is not defined",
                 context
             ))
+        
+        if node.slice_or_getter != None:
+
+            if len(node.slice_or_getter) == 1:
+                ope1 : Number = result.register(self.visit(node.slice_or_getter[0], context))
+                if result.should_return(): return result
+                value, error = value.get(ope1)
+                if error: return result.failure(error)
+
+            elif len(node.slice_or_getter) == 2:
+                ope1 = node.slice_or_getter[0]
+                if ope1 != None:
+                    ope1 = result.register(self.visit(ope1, context))
+                    if result.should_return(): return result
+
+                ope2 = node.slice_or_getter[1]
+                if ope2!= None:
+                    ope2 = result.register(self.visit(ope2, context))
+                    if result.should_return(): return result
+
+                value, error = value.get_slice(ope1, ope2)
+                if error: return result.failure(error)
+
         
         value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return result.success(value)
@@ -624,7 +685,7 @@ class Interpreter:
             recursion_count += 1
 
             value= result.register(self.visit(node.body_node, context))
-            if result.should_return() and result.loop_continue == False and result.loop_continue == False: return result
+            if result.should_return() and result.loop_continue == False: return result
 
             if result.loop_continue:
                 continue
@@ -637,6 +698,48 @@ class Interpreter:
         return result.success(
             List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
+    
+    def visit_ForInNode(self, node : ForInNode, context : Context) -> RTResult:
+        result = RTResult()
+        elements = []
+        recursion_count = 0
+
+        iterated_value = result.register(self.visit(node.iterated_value_node, context))
+        if result.should_return(): return result
+
+        if isinstance(iterated_value, String):
+            iterated_value = List([String(char) for char in iterated_value.value])
+            
+        if isinstance(iterated_value, List):
+            for i in range(len(iterated_value.elements)):
+                context.symbol_table.set(node.var_name_token.value, iterated_value.elements[i])
+                if recursion_count > LOOP_MAX_RECUR:
+                    return result.failure(RTError(
+                        node.pos_start, node.pos_end,
+                        f"Max recursion limit reached ({LOOP_MAX_RECUR})",
+                        context
+                    ))
+                recursion_count += 1
+
+                value = result.register(self.visit(node.body_node, context))
+                if result.should_return() and result.loop_continue == False: return result
+
+                if result.loop_continue:
+                    continue
+
+                if result.loop_break:
+                    break
+
+                elements.append(value)
+            return result.success(
+                List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+            )
+        else:
+            return result.failure(RTError(
+                node.pos_start, node.pos_end,
+                f"Can't iterate over {iterated_value}",
+                context
+            ))
 
     def visit_WhileNode(self, node : WhileNode, context : Context) -> RTResult:
         result = RTResult()
@@ -711,7 +814,7 @@ class Interpreter:
             value = result.register(self.visit(node.return_node, context))
             if result.should_return(): return result
         else:
-            value = Number.null
+            value = Boolean.null
 
         return result.success_return(value)
     

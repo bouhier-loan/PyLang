@@ -22,13 +22,16 @@ power       : call (POW factor)*
 
 call        : atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
 
-atom        : INT|FLOAT|STRING|IDENTIFIER
+atom        : INT|FLOAT|STRING
+            : var-expr
             : LPAREN expr RPAREN
             : if-expr
             : for-expr
             : while-expr
             : list-expr
             : func-def
+
+var-expr    : IDENTIFIER (LSBRACKET (arith-expr)? (COLON arith-expr) RSBRACKET)?
 
 list-expr   : LSBRACKET (expr (COMMA expr)*)? RSBRACKET
 
@@ -44,8 +47,10 @@ if-expr     : KEYWORD:if expr LCBRACKET
               statement
             | (NEWLINE statements RCBRACKET)
 
-for-expr    : KEYWORD:for IDENTIFIER EQ expr KEYWORD:to expr 
-            : (KEYWORD:step expr)? LCBRACKET
+for-expr    : KEYWORD:for IDENTIFIER 
+            : EQ expr KEYWORD:to expr (KEYWORD:step expr)?
+            | KEYWORD:in INDENTIFIER
+            : LCBRACKET
             : expr
             | (NEWLINE statements RCBRACKET)
 
