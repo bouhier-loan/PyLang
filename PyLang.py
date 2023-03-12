@@ -521,6 +521,28 @@ class Interpreter:
         )
     
     def visit_StringNode(self, node : StringNode, context : Context) -> RTResult:
+        # If {expr} is in string, replace it with the value of the expression
+        if '{' and '}' in node.token.value:
+            result = RTResult()
+
+            string = node.token.value
+            expr = string[string.find('{') + 1 : string.find('}')]
+
+            tokens, error = Lexer(context.display_name, expr).make_tokens()
+            if error: return result.failure(error)
+
+            parser = Parser(tokens)
+            ast = parser.parse()
+            if ast.error: return result.failure(ast.error)
+
+            value = result.register(self.visit(ast.node, context))
+            if result.should_return(): return result
+
+            string = string.replace(f'{{{expr}}}', str(value.elements[0]))
+            return result.success(
+                String(string).set_context(context).set_pos(node.pos_start, node.pos_end)
+            )
+        
         return RTResult().success(
             String(node.token.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
@@ -863,7 +885,7 @@ def _run(file_name : str, text : str, symbol_table : SymbolTable = SymbolTable(g
 if __name__ == '__main__':
     args = argv
     if len(args) == 1:
-        exec(open("shell.py").read())
+        exec(open(path.dirname(args[0]) + "/shell.py").read())
     elif len(args) <= 3:
         if '-test' in args:
             args.remove('-test')
