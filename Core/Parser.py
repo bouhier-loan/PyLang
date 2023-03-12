@@ -21,6 +21,7 @@ from Nodes.VarAssign import VarAssignNode
 from Nodes.Return import ReturnNode
 from Nodes.Continue import ContinueNode
 from Nodes.Break import BreakNode
+from Nodes.Import import ImportNode
 
 
 ##############
@@ -542,6 +543,37 @@ class Parser:
 
         return result.success(WhileNode(condition_value, body))
 
+#* IMPORT EXRPESSIONS
+
+    def import_expr(self) -> ParseResult:
+        result = ParseResult()
+
+        pos_start = self.current_token.pos_start.copy()
+
+        if not self.current_token.matches(TT_KEYWORD, 'import'):
+            return result.failure(InvalidSyntaxError(
+                self.current_token.pos_start, self.current_token.pos_end,
+                f"Expected 'import'"
+            ))
+        
+        result.register_advance()
+        self.advance()
+
+        if not self.current_token.type == TT_STRING:
+            return result.failure(InvalidSyntaxError(
+                self.current_token.pos_start, self.current_token.pos_end,
+                f"Expected a string"
+            ))
+        
+        file_name = self.current_token
+
+        pos_end = self.current_token.pos_end.copy()
+
+        result.register_advance()
+        self.advance()
+
+        return result.success(ImportNode(file_name, pos_start, pos_end))
+
 #* FUNCTION EXPRESSIONS
 
     def func_def(self) -> ParseResult:
@@ -736,6 +768,11 @@ class Parser:
             if_expr = result.register(self.if_expr())
             if result.error: return result
             return result.success(if_expr)
+        
+        elif token.matches(TT_KEYWORD, "import"):
+            import_expr = result.register(self.import_expr())
+            if result.error: return result
+            return result.success(import_expr)
     
         elif token.matches(TT_KEYWORD, "for"):
             for_expr = result.register(self.for_expr())

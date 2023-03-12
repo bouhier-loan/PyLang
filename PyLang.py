@@ -28,6 +28,7 @@ from Nodes.While import WhileNode
 from Nodes.Return import ReturnNode
 from Nodes.Break import BreakNode
 from Nodes.Continue import ContinueNode
+from Nodes.Import import ImportNode
 
 from Utils.Context import Context
 from Utils.Token import Token
@@ -305,6 +306,8 @@ class BuiltInFunction(BaseFunction):
             ))
         
         file = file.value
+        file_path = path.dirname(exec_context.symbol_table.get("__file__").value) + "/"
+        file = file_path + file.value.replace('.', '/') + '.pyl'
 
         try:
             with open(file, "r") as f:
@@ -328,41 +331,6 @@ class BuiltInFunction(BaseFunction):
         
         return RTResult().success(Boolean.null)
     execute_run.arg_names = ["file"]
-
-    def execute_import(self, exec_context : Context) -> RTResult:
-        file = exec_context.symbol_table.get('file')
-
-        if not isinstance(file, String):
-            return RTResult().failure(RTError(
-                self.pos_start, self.pos_end,
-                "Argument must be STRING",
-                exec_context
-            ))
-        
-        file = file.value.replace('.', '/') + '.pyl'
-
-        try:
-            with open(file, "r") as f:
-                script = f.read()
-            
-        except Exception as e:
-            return RTResult().failure(RTError(
-                self.pos_start, self.pos_end,
-                f"Failed to load script \"{file}\"\n" + str(e),
-                exec_context
-            ))
-        
-        _, error = _run(file, script, global_symbol_table)
-
-        if error:
-            return RTResult().failure(RTError(
-                self.pos_start, self.pos_end,
-                f"Failed to finish executing script \"{file}\"\n {error}",
-                exec_context
-            ))
-        
-        return RTResult().success(Boolean.null)
-    execute_import.arg_names = ["file"]
 
     def execute_type(self, exec_context : Context) -> RTResult:
         value = exec_context.symbol_table.get('value')
@@ -462,7 +430,6 @@ BuiltInFunction.sqrt                = BuiltInFunction("sqrt")
 BuiltInFunction.len                 = BuiltInFunction("len")
 BuiltInFunction.sum                 = BuiltInFunction("sum")
 BuiltInFunction.run                 = BuiltInFunction("run")
-BuiltInFunction.import_module       = BuiltInFunction("import")
 BuiltInFunction.type                = BuiltInFunction("type")
 BuiltInFunction.upper               = BuiltInFunction("upper")
 BuiltInFunction.lower               = BuiltInFunction("lower")
@@ -494,7 +461,6 @@ global_symbol_table.set("sqrt", BuiltInFunction.sqrt)
 global_symbol_table.set("len", BuiltInFunction.len)
 global_symbol_table.set("sum", BuiltInFunction.sum)
 global_symbol_table.set("run", BuiltInFunction.run)
-global_symbol_table.set("import", BuiltInFunction.import_module)
 global_symbol_table.set("type", BuiltInFunction.type)
 global_symbol_table.set("upper", BuiltInFunction.upper)
 global_symbol_table.set("lower", BuiltInFunction.lower)
@@ -845,6 +811,35 @@ class Interpreter:
     
     def visit_BreakNode(self, node : BreakNode, context : Context) -> RTResult:
         return RTResult().success_break()
+    
+    def visit_ImportNode(self, node: ImportNode, context : Context) -> RTResult:
+        result = RTResult()
+
+        file = node.module_name_token
+        file_path = path.dirname(context.symbol_table.get("__file__").value) + "/"
+        file = file_path + file.value.replace('.', '/') + '.pyl'
+
+        try:
+            with open(file, "r") as f:
+                script = f.read()
+            
+        except Exception as e:
+            return RTResult().failure(RTError(
+                node.pos_start, node.pos_end,
+                f"Failed to load script \"{file}\"\n" + str(e),
+                context
+            ))
+        
+        _, error = _run(file, script, global_symbol_table)
+
+        if error:
+            return RTResult().failure(RTError(
+                node.pos_start, node.pos_end,
+                f"Failed to finish executing script \"{file}\"\n {error}",
+                context
+            ))
+        
+        return result.success(Boolean.null)
 
 ###########
 # ! RUN ! #

@@ -30,6 +30,9 @@ atom        : INT|FLOAT|STRING
             : while-expr
             : list-expr
             : func-def
+            : import-expr
+
+import-expr : KEYWORD:import STRING
 
 var-expr    : IDENTIFIER (LSBRACKET (arith-expr)? (COLON arith-expr) RSBRACKET)?
 

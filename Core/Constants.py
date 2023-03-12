@@ -94,6 +94,7 @@ KEYWORDS = [
     'break',
     'continue',
     'in',
+    'import',
 ]
 
 # Numbers
