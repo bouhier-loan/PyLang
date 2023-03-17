@@ -492,19 +492,20 @@ class Interpreter:
             result = RTResult()
 
             string = node.token.value
-            expr = string[string.find('{') + 1 : string.find('}')]
 
-            tokens, error = Lexer(context.display_name, expr).make_tokens()
-            if error: return result.failure(error)
+            while '{' and '}' in string:
+                expr = string[string.find('{') + 1 : string.find('}')]
 
-            parser = Parser(tokens)
-            ast = parser.parse()
-            if ast.error: return result.failure(ast.error)
+                tokens, error = Lexer(context.display_name, expr).make_tokens()
+                if error: return result.failure(error)
 
-            value = result.register(self.visit(ast.node, context))
-            if result.should_return(): return result
+                ast = Parser(tokens).parse()
+                if ast.error: return result.failure(ast.error)
 
-            string = string.replace(f'{{{expr}}}', str(value.elements[0]))
+                value = result.register(self.visit(ast.node, context))
+                if result.should_return(): return result
+
+                string = string.replace(f'{{{expr}}}', str(value.elements[0]))
             return result.success(
                 String(string).set_context(context).set_pos(node.pos_start, node.pos_end)
             )
@@ -512,7 +513,7 @@ class Interpreter:
         return RTResult().success(
             String(node.token.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
-    
+        
     def visit_ListNode(self, node : ListNode, context : Context) -> RTResult:
         result = RTResult()
         elements = []
