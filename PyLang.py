@@ -382,6 +382,26 @@ class BuiltInFunction(BaseFunction):
         return RTResult().success(String(return_value))
     execute_lower.arg_names = ["value"]
 
+    def execute_range(self, exec_context : Context) -> RTResult:
+        start = exec_context.symbol_table.get('start')
+        end = exec_context.symbol_table.get('end')
+        step = exec_context.symbol_table.get('step')
+
+        if not isinstance(start, Number) or not isinstance(end, Number) or not isinstance(step, Number):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Arguments must be INT or FLOAT",
+                exec_context
+            ))
+        
+        return_value = []
+        i = start.value
+        while i < end.value:
+            return_value.append(Number(i))
+            i += step.value
+        return RTResult().success(List(return_value))
+    execute_range.arg_names = ["start", "end", "step"]
+
 class Function(BaseFunction):
     def __init__(self, name : Token, body_node : BinOpNode, arg_names : list[Token], auto_return) -> None:
         super().__init__(name)
@@ -433,6 +453,7 @@ BuiltInFunction.run                 = BuiltInFunction("run")
 BuiltInFunction.type                = BuiltInFunction("type")
 BuiltInFunction.upper               = BuiltInFunction("upper")
 BuiltInFunction.lower               = BuiltInFunction("lower")
+BuiltInFunction.range               = BuiltInFunction("range")
 
 # Public symbol table
 global_symbol_table = SymbolTable()
@@ -444,6 +465,13 @@ global_symbol_table.set("False", Boolean.false)
 global_symbol_table.set("false", Boolean.false)
 global_symbol_table.set("True", Boolean.true)
 global_symbol_table.set("true", Boolean.true)
+
+global_symbol_table.set("int", String.int)
+global_symbol_table.set("float", String.float)
+global_symbol_table.set("string", String.string)
+global_symbol_table.set("list", String.list)
+global_symbol_table.set("function", String.function)
+global_symbol_table.set("boolean", String.boolean)
 
 # * Built in functions *
 global_symbol_table.set("print", BuiltInFunction.print)
@@ -465,6 +493,7 @@ global_symbol_table.set("type", BuiltInFunction.type)
 global_symbol_table.set("upper", BuiltInFunction.upper)
 global_symbol_table.set("lower", BuiltInFunction.lower)
 global_symbol_table.set("println", BuiltInFunction.println)
+global_symbol_table.set("range", BuiltInFunction.range)
 
 
 ###################
