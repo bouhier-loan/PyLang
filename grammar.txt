@@ -61,6 +61,8 @@ while-expr  : KEYWORD:while expr LCBRACKET
             : expr
             | (NEWLINE statements RCBRACKET)
 
-func-def    : KEYWORD:func IDENTIFIER? LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN
+func-def    : KEYWORD:func IDENTIFIER? LPAREN 
+            : (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN
+            | (IDENTIFIER EQ expr (COMMA IDENTIFIER EQ expr)*)?
             : (EQ expr)
             | (LCBRACKET NEWLINE statements RCBRACKET)
