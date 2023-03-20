@@ -23,7 +23,13 @@ class BaseFunction(Value):
     def check_args(self, arg_names : dict, args : list[Value]) -> RTResult:
         result = RTResult()
 
-        minimum_args = len([0 for default_value in arg_names.values() if default_value == Boolean.null])
+        minimum_args = len([0 for default_value in arg_names.values() if default_value != Boolean.null])
+
+        #* print(f"> minimum_args: {minimum_args}")
+        #* print(f"> len(args): {len(args)}")
+        #* print(f"> len(arg_names): {len(arg_names)}")
+        #* print(f"> args: {args}")
+
         
         if len(args) > len(arg_names):
             return result.failure(RTError(

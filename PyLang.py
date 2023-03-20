@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from sys import argv
-import os
+from os import listdir, remove
 from os import path
 
 from Values.Number import Number
@@ -931,4 +931,7 @@ if __name__ == '__main__':
 
         _, error = _run(args[1], open(args[1]).read())
         if error: print(error)
+    
+    for p in __import__('pathlib').Path(path.dirname(__file__)).rglob('*.py[co]'): p.unlink()
+    for p in __import__('pathlib').Path(path.dirname(__file__)).rglob('__pycache__'): p.rmdir()
         
