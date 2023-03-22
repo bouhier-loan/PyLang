@@ -729,25 +729,45 @@ class Parser:
             result.register_advance()
             self.advance()
 
-            arg_nodes = []
+            arg_nodes = {
+                Boolean.null: []
+            }
 
             if self.current_token.type == TT_RPAREN:
                 result.register_advance()
                 self.advance()
             else:
-                arg_nodes.append(result.register(self.expression()))
+                arg_node = result.register(self.expression())
                 if result.error:
                     return result.failure(InvalidSyntaxError(
 						self.current_token.pos_start, self.current_token.pos_end,
 						"Expected ')', 'var', 'if', 'for', 'while', 'func', INT, FLOAT, IDENTIFIER, '+', '-', '(' or '!'"
 					))
                 
+                if self.current_token.type == TT_EQ:
+                    result.register_advance()
+                    self.advance()
+
+                    arg_nodes[arg_node] = result.register(self.expression())
+                    if result.error: return result
+                else:
+                    arg_nodes[Boolean.null].append(arg_node)
+                
                 while self.current_token.type == TT_COMMA:
                     result.register_advance()
                     self.advance()
 
-                    arg_nodes.append(result.register(self.expression()))
+                    arg_node = result.register(self.expression())
                     if result.error: return result
+
+                    if self.current_token.type == TT_EQ:
+                        result.register_advance()
+                        self.advance()
+
+                        arg_nodes[arg_node] = result.register(self.expression())
+                        if result.error: return result
+                    else:
+                        arg_nodes[Boolean.null].append(arg_node)
                 
                 if self.current_token.type != TT_RPAREN:
                     return result.failure(InvalidSyntaxError(

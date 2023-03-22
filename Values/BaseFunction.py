@@ -20,7 +20,7 @@ class BaseFunction(Value):
         new_context.symbol_table = SymbolTable(new_context.parent.symbol_table)
         return new_context
     
-    def check_args(self, arg_names : dict, args : list[Value]) -> RTResult:
+    def check_args(self, arg_names : dict, args : dict) -> RTResult:
         result = RTResult()
 
         minimum_args = len([0 for default_value in arg_names.values() if default_value != Boolean.null])
@@ -45,17 +45,12 @@ class BaseFunction(Value):
             ))
         return result.success(None)
     
-    def populate_args(self, arg_names : dict, args : list[Value], execution_context : Context):
-        for i in range(len(arg_names)):
-            arg_name = list(arg_names.keys())[i]
-            if i > len(args) - 1:
-                arg_value = list(arg_names.values())[i]
-            else:
-                arg_value = args[i]
-            arg_value.set_context(execution_context)
-            execution_context.symbol_table.set(arg_name, arg_value)
+    def populate_args(self, arg_names : dict, args : dict, execution_context : Context):
+        # TODO
+        print("TODO: populate_args")
+        pass
     
-    def check_populate_args(self, arg_names : dict, args : list[Token], execution_context : Context) -> RTResult:
+    def check_populate_args(self, arg_names : dict, args : dict, execution_context : Context) -> RTResult:
         result = RTResult()
         result.register(self.check_args(arg_names, args))
         if result.error: return result
