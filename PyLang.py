@@ -407,32 +407,6 @@ class BuiltInFunction(BaseFunction):
         return RTResult().success(List(return_value))
     execute_range.arg_names = {"arg1" : None, "arg2" : Boolean.null, "step" : Boolean.null}
 
-    def execute_map(self, exec_context : Context) -> RTResult:
-        func = exec_context.symbol_table.get('func')
-        list = exec_context.symbol_table.get('list')
-
-        if not isinstance(func, BaseFunction):
-            return RTResult().failure(RTError(
-                self.pos_start, self.pos_end,
-                "First argument must be FUNCTION",
-                exec_context
-            ))
-
-        if not isinstance(list, List):
-            return RTResult().failure(RTError(
-                self.pos_start, self.pos_end,
-                "Second argument must be LIST",
-                exec_context
-            ))
-
-        return_value = []
-        for element in list.elements:
-            result = func.execute([element])
-            if result.error: return result
-            return_value.append(result.value)
-        return RTResult().success(List(return_value))
-    execute_map.arg_names = {"func" : None, "list" : None}
-
 class Function(BaseFunction):
     def __init__(self, name : Token, body_node : BinOpNode, arg_names : dict, auto_return) -> None:
         super().__init__(name)
@@ -484,7 +458,6 @@ BuiltInFunction.type                = BuiltInFunction("type")
 BuiltInFunction.upper               = BuiltInFunction("upper")
 BuiltInFunction.lower               = BuiltInFunction("lower")
 BuiltInFunction.range               = BuiltInFunction("range")
-BuiltInFunction.map                 = BuiltInFunction("map")
 
 # Public symbol table
 global_symbol_table = SymbolTable()
@@ -524,7 +497,6 @@ global_symbol_table.set("upper", BuiltInFunction.upper)
 global_symbol_table.set("lower", BuiltInFunction.lower)
 global_symbol_table.set("println", BuiltInFunction.println)
 global_symbol_table.set("range", BuiltInFunction.range)
-global_symbol_table.set("map", BuiltInFunction.map)
 
 
 ###################
