@@ -186,7 +186,7 @@ c. Built-in functions
 -   clear()                             - clears the console
 
 -   run(<something>)                    - runs a file
--   import(<something>)                 - imports a file
+-   import <something>                  - imports a file
 note: the file path needs to be relative to the current file and the file extension needs to be .pyl
 ex: import("test")
 ex: import("someFolder.test")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from sys import argv
-import os
+from os import listdir, remove
 from os import path
 
 from Values.Number import Number
@@ -28,6 +28,7 @@ from Nodes.While import WhileNode
 from Nodes.Return import ReturnNode
 from Nodes.Break import BreakNode
 from Nodes.Continue import ContinueNode
+from Nodes.Import import ImportNode
 
 from Utils.Context import Context
 from Utils.Token import Token
@@ -81,12 +82,12 @@ class BuiltInFunction(BaseFunction):
     def execute_print(self, exec_context : Context) -> RTResult:
         print(str(exec_context.symbol_table.get('value')), end='')
         return RTResult().success(Boolean.null)
-    execute_print.arg_names = ["value"]
+    execute_print.arg_names = {"value" : String("")}
 
     def execute_println(self, exec_context : Context) -> RTResult:
         print(str(exec_context.symbol_table.get('value')))
         return RTResult().success(Boolean.null)
-    execute_println.arg_names = ["value"]
+    execute_println.arg_names = {"value" : String("")}
 
     def execute_string(self, exec_context : Context) -> RTResult:
         try:
@@ -98,7 +99,7 @@ class BuiltInFunction(BaseFunction):
                 exec_context
             ))
         return RTResult().success(String(text))
-    execute_string.arg_names = ["value"]
+    execute_string.arg_names = {"value" : None}
 
     def execute_int(self, exec_context : Context) -> RTResult:
         try:
@@ -110,7 +111,7 @@ class BuiltInFunction(BaseFunction):
                 exec_context
             ))
         return RTResult().success(Number(number))
-    execute_int.arg_names = ["value"]
+    execute_int.arg_names = {"value" : None}
 
     def execute_float(self, exec_context : Context) -> RTResult:
         try:
@@ -122,17 +123,17 @@ class BuiltInFunction(BaseFunction):
                 exec_context
             ))
         return RTResult().success(Number(number))
-    execute_float.arg_names = ["value"]
+    execute_float.arg_names = {"value" : None}
 
     def execute_input(self, exec_context : Context) -> RTResult:
-        text = input()
+        text = input(exec_context.symbol_table.get('value').value)
         return RTResult().success(String(text))
-    execute_input.arg_names = []
+    execute_input.arg_names = {"value" : String("")}
 
     def execute_clear(self, exec_context : Context) -> RTResult:
         os.system('cls' if os.name == 'nt' else 'clear')
         return RTResult().success(Boolean.null)
-    execute_clear.arg_names = []
+    execute_clear.arg_names = {}
 
     def execute_append(self, exec_context : Context) -> RTResult:
         list = exec_context.symbol_table.get('list')
@@ -148,7 +149,7 @@ class BuiltInFunction(BaseFunction):
         list.elements.append(value)
 
         return RTResult().success(Boolean.null)
-    execute_append.arg_names = ["list", "value"]
+    execute_append.arg_names = {"list" : None, "value" : None}
 
     def execute_pop(self, exec_context : Context) -> RTResult:
         list = exec_context.symbol_table.get('list')
@@ -178,36 +179,8 @@ class BuiltInFunction(BaseFunction):
             ))
 
         return RTResult().success(return_value)
-    execute_pop.arg_names = ["list", "value"]
+    execute_pop.arg_names = {"list" : None, "value" : Number(-1)}
 
-    def execute_get(self, exec_context : Context) -> RTResult:
-        list = exec_context.symbol_table.get('list')
-        value = exec_context.symbol_table.get('value')
-
-        if not isinstance(list, List):
-            return RTResult().failure(RTError(
-                self.pos_start, self.pos_end,
-                "First argument must be LIST",
-                exec_context
-            ))
-        
-        if not isinstance(value, Number):
-            return RTResult().failure(RTError(
-                self.pos_start, self.pos_end,
-                "Second argument must be INT",
-                exec_context
-            ))
-        try:
-            return_value = list.elements[value.value]
-        except:
-            return RTResult().failure(RTError(
-                self.pos_start, self.pos_end,
-                "Element at this index could not be removed from list because index is out of range",
-                exec_context
-            ))
-        
-        return RTResult().success(return_value)
-    execute_get.arg_names = ["list", "value"]
 
     def execute_extend(self, exec_context : Context) -> RTResult:
         list1 = exec_context.symbol_table.get('list1')
@@ -230,7 +203,7 @@ class BuiltInFunction(BaseFunction):
         list1.elements.extend(list2.elements)
 
         return RTResult().success(Boolean.null)
-    execute_extend.arg_names = ["list1", "list2"]
+    execute_extend.arg_names = {"list1" : None, "list2"  : None}
 
     def execute_sqrt(self, exec_context : Context) -> RTResult:
         value = exec_context.symbol_table.get('value')
@@ -252,7 +225,7 @@ class BuiltInFunction(BaseFunction):
             ))
         
         return RTResult().success(Number(return_value))
-    execute_sqrt.arg_names = ["value"]
+    execute_sqrt.arg_names = {"value" : None}
 
     def execute_len(self, exec_context : Context) -> RTResult:
         value = exec_context.symbol_table.get('value')
@@ -271,7 +244,7 @@ class BuiltInFunction(BaseFunction):
                 "Argument must be LIST or STRING",
                 exec_context
             ))
-    execute_len.arg_names = ["value"]
+    execute_len.arg_names = {"value" : None}
 
     def execute_sum(self, exec_context : Context) -> RTResult:
         list = exec_context.symbol_table.get('list')
@@ -292,7 +265,7 @@ class BuiltInFunction(BaseFunction):
                 ))
             return_value += element.value
         return RTResult().success(Number(return_value))
-    execute_sum.arg_names = ["list"]
+    execute_sum.arg_names = {"list" : None}
 
     def execute_run(self, exec_context : Context) -> RTResult:
         file = exec_context.symbol_table.get('file')
@@ -305,6 +278,8 @@ class BuiltInFunction(BaseFunction):
             ))
         
         file = file.value
+        file_path = path.dirname(exec_context.symbol_table.get("__file__").value) + "/"
+        file = file_path + file.value.replace('.', '/') + '.pyl'
 
         try:
             with open(file, "r") as f:
@@ -327,42 +302,7 @@ class BuiltInFunction(BaseFunction):
             ))
         
         return RTResult().success(Boolean.null)
-    execute_run.arg_names = ["file"]
-
-    def execute_import(self, exec_context : Context) -> RTResult:
-        file = exec_context.symbol_table.get('file')
-
-        if not isinstance(file, String):
-            return RTResult().failure(RTError(
-                self.pos_start, self.pos_end,
-                "Argument must be STRING",
-                exec_context
-            ))
-        
-        file = file.value.replace('.', '/') + '.pyl'
-
-        try:
-            with open(file, "r") as f:
-                script = f.read()
-            
-        except Exception as e:
-            return RTResult().failure(RTError(
-                self.pos_start, self.pos_end,
-                f"Failed to load script \"{file}\"\n" + str(e),
-                exec_context
-            ))
-        
-        _, error = _run(file, script, global_symbol_table)
-
-        if error:
-            return RTResult().failure(RTError(
-                self.pos_start, self.pos_end,
-                f"Failed to finish executing script \"{file}\"\n {error}",
-                exec_context
-            ))
-        
-        return RTResult().success(Boolean.null)
-    execute_import.arg_names = ["file"]
+    execute_run.arg_names = {"file" : None}
 
     def execute_type(self, exec_context : Context) -> RTResult:
         value = exec_context.symbol_table.get('value')
@@ -384,7 +324,7 @@ class BuiltInFunction(BaseFunction):
             else:
                 return_value = "float"
         return RTResult().success(String(return_value))
-    execute_type.arg_names = ["value"]
+    execute_type.arg_names = {"value" : None}
 
     def execute_upper(self, exec_context : Context) -> RTResult:
         value = exec_context.symbol_table.get('value')
@@ -398,7 +338,7 @@ class BuiltInFunction(BaseFunction):
         
         return_value = value.value.upper()
         return RTResult().success(String(return_value))
-    execute_upper.arg_names = ["value"]
+    execute_upper.arg_names = {"value" : None}
 
     def execute_lower(self, exec_context : Context) -> RTResult:
         value = exec_context.symbol_table.get('value')
@@ -412,16 +352,69 @@ class BuiltInFunction(BaseFunction):
         
         return_value = value.value.lower()
         return RTResult().success(String(return_value))
-    execute_lower.arg_names = ["value"]
+    execute_lower.arg_names = {"value" : None}
+
+    def execute_range(self, exec_context : Context) -> RTResult:
+        arg1 = exec_context.symbol_table.get('arg1')
+        arg2 = exec_context.symbol_table.get('arg2')
+        step = exec_context.symbol_table.get('step')
+
+        if not isinstance(arg1, Number):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "First argument must be INT or FLOAT",
+                exec_context
+            ))
+
+        if arg2 == Boolean.null:
+            arg2 = arg1
+            arg1 = Number(0)
+
+        elif not isinstance(arg2, Number):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Second argument must be INT or FLOAT",
+                exec_context
+            ))
+
+        if step == Boolean.null:
+            step = Number(1)
+        elif not isinstance(step, Number):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Third argument must be INT or FLOAT",
+                exec_context
+            ))
+        
+        if step.value == 0:
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Third argument cannot be 0",
+                exec_context
+            ))
+        
+        return_value = []
+        if step.value > 0:
+            i = arg1.value
+            while i < arg2.value:
+                return_value.append(Number(i))
+                i += step.value
+        else:
+            i = arg1.value
+            while i > arg2.value:
+                return_value.append(Number(i))
+                i += step.value
+        return RTResult().success(List(return_value))
+    execute_range.arg_names = {"arg1" : None, "arg2" : Boolean.null, "step" : Boolean.null}
 
 class Function(BaseFunction):
-    def __init__(self, name : Token, body_node : BinOpNode, arg_names : list[Token], auto_return) -> None:
+    def __init__(self, name : Token, body_node : BinOpNode, arg_names : dict, auto_return) -> None:
         super().__init__(name)
         self.body_node = body_node
         self.arg_names = arg_names
         self.auto_return = auto_return
 
-    def execute(self, args : list[Value]) -> RTResult:
+    def execute(self, args : dict) -> RTResult:
         result = RTResult()
         interpreter = Interpreter()
         exec_context = self.generate_new_context()
@@ -456,16 +449,15 @@ BuiltInFunction.input               = BuiltInFunction("input")
 BuiltInFunction.clear               = BuiltInFunction("clear")
 BuiltInFunction.append              = BuiltInFunction("append")
 BuiltInFunction.pop                 = BuiltInFunction("pop")
-BuiltInFunction.get                 = BuiltInFunction("get")
 BuiltInFunction.extend              = BuiltInFunction("extend")
 BuiltInFunction.sqrt                = BuiltInFunction("sqrt")
 BuiltInFunction.len                 = BuiltInFunction("len")
 BuiltInFunction.sum                 = BuiltInFunction("sum")
 BuiltInFunction.run                 = BuiltInFunction("run")
-BuiltInFunction.import_module       = BuiltInFunction("import")
 BuiltInFunction.type                = BuiltInFunction("type")
 BuiltInFunction.upper               = BuiltInFunction("upper")
 BuiltInFunction.lower               = BuiltInFunction("lower")
+BuiltInFunction.range               = BuiltInFunction("range")
 
 # Public symbol table
 global_symbol_table = SymbolTable()
@@ -478,6 +470,13 @@ global_symbol_table.set("false", Boolean.false)
 global_symbol_table.set("True", Boolean.true)
 global_symbol_table.set("true", Boolean.true)
 
+global_symbol_table.set("int", String.int)
+global_symbol_table.set("float", String.float)
+global_symbol_table.set("string", String.string)
+global_symbol_table.set("list", String.list)
+global_symbol_table.set("function", String.function)
+global_symbol_table.set("boolean", String.boolean)
+
 # * Built in functions *
 global_symbol_table.set("print", BuiltInFunction.print)
 global_symbol_table.set("str", BuiltInFunction.string)
@@ -488,17 +487,16 @@ global_symbol_table.set("clear", BuiltInFunction.clear)
 global_symbol_table.set("cls", BuiltInFunction.clear)
 global_symbol_table.set("append", BuiltInFunction.append)
 global_symbol_table.set("pop", BuiltInFunction.pop)
-global_symbol_table.set("get", BuiltInFunction.get)
 global_symbol_table.set("extend", BuiltInFunction.extend)
 global_symbol_table.set("sqrt", BuiltInFunction.sqrt)
 global_symbol_table.set("len", BuiltInFunction.len)
 global_symbol_table.set("sum", BuiltInFunction.sum)
 global_symbol_table.set("run", BuiltInFunction.run)
-global_symbol_table.set("import", BuiltInFunction.import_module)
 global_symbol_table.set("type", BuiltInFunction.type)
 global_symbol_table.set("upper", BuiltInFunction.upper)
 global_symbol_table.set("lower", BuiltInFunction.lower)
 global_symbol_table.set("println", BuiltInFunction.println)
+global_symbol_table.set("range", BuiltInFunction.range)
 
 
 ###################
@@ -521,10 +519,33 @@ class Interpreter:
         )
     
     def visit_StringNode(self, node : StringNode, context : Context) -> RTResult:
+        # If {expr} is in string, replace it with the value of the expression
+        if '{' and '}' in node.token.value:
+            result = RTResult()
+
+            string = node.token.value
+
+            while '{' and '}' in string:
+                expr = string[string.find('{') + 1 : string.find('}')]
+
+                tokens, error = Lexer(context.display_name, expr).make_tokens()
+                if error: return result.failure(error)
+
+                ast = Parser(tokens).parse()
+                if ast.error: return result.failure(ast.error)
+
+                value = result.register(self.visit(ast.node, context))
+                if result.should_return(): return result
+
+                string = string.replace(f'{{{expr}}}', str(value.elements[0]))
+            return result.success(
+                String(string).set_context(context).set_pos(node.pos_start, node.pos_end)
+            )
+        
         return RTResult().success(
             String(node.token.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
-    
+        
     def visit_ListNode(self, node : ListNode, context : Context) -> RTResult:
         result = RTResult()
         elements = []
@@ -780,9 +801,19 @@ class Interpreter:
 
         func_name = node.var_name_token.value if node.var_name_token else None
         body_node = node.body_node
-        arg_names = [arg_name.value for arg_name in node.arg_name_tokens]
+        arg_names = node.arg_name_tokens
+        new_arg_names = {}
 
-        func_value = Function(func_name, body_node, arg_names, node.auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
+        for key, value in arg_names.items():
+            key = key.value
+            if value != Boolean.null:
+                result = self.visit(value, context)
+                if result.should_return(): return result
+                new_arg_names[key] = result.value
+            else:
+                new_arg_names[key] = value
+
+        func_value = Function(func_name, body_node, new_arg_names, node.auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
 
         if node.var_name_token:
             context.symbol_table.set(func_name, func_value)
@@ -823,6 +854,35 @@ class Interpreter:
     
     def visit_BreakNode(self, node : BreakNode, context : Context) -> RTResult:
         return RTResult().success_break()
+    
+    def visit_ImportNode(self, node: ImportNode, context : Context) -> RTResult:
+        result = RTResult()
+
+        file = node.module_name_token
+        file_path = path.dirname(context.symbol_table.get("__file__").value) + "/"
+        file = file_path + file.value.replace('.', '/') + '.pyl'
+
+        try:
+            with open(file, "r") as f:
+                script = f.read()
+            
+        except Exception as e:
+            return RTResult().failure(RTError(
+                node.pos_start, node.pos_end,
+                f"Failed to load script \"{file}\"\n" + str(e),
+                context
+            ))
+        
+        _, error = _run(file, script, global_symbol_table)
+
+        if error:
+            return RTResult().failure(RTError(
+                node.pos_start, node.pos_end,
+                f"Failed to finish executing script \"{file}\"\n {error}",
+                context
+            ))
+        
+        return result.success(Boolean.null)
 
 ###########
 # ! RUN ! #
@@ -863,7 +923,7 @@ def _run(file_name : str, text : str, symbol_table : SymbolTable = SymbolTable(g
 if __name__ == '__main__':
     args = argv
     if len(args) == 1:
-        exec(open("shell.py").read())
+        exec(open(path.dirname(args[0]) + "/shell.py").read())
     elif len(args) <= 3:
         if '-test' in args:
             args.remove('-test')
@@ -871,4 +931,7 @@ if __name__ == '__main__':
 
         _, error = _run(args[1], open(args[1]).read())
         if error: print(error)
+    
+    for p in __import__('pathlib').Path(path.dirname(__file__)).rglob('*.py[co]'): p.unlink()
+    for p in __import__('pathlib').Path(path.dirname(__file__)).rglob('__pycache__'): p.rmdir()
         

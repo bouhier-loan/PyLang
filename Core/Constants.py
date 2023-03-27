@@ -1,6 +1,7 @@
 import string
 
 from Values.Boolean import Boolean
+from Values.String import String
 
 #################
 # ! CONSTANTS ! #
@@ -94,6 +95,7 @@ KEYWORDS = [
     'break',
     'continue',
     'in',
+    'import',
 ]
 
 # Numbers
@@ -101,3 +103,10 @@ Boolean.null = Boolean(None)
 Boolean.true = Boolean(True)
 Boolean.false = Boolean(False)
 
+String.int = String('int')
+String.float = String('float')
+String.string = String('str')
+String.boolean = String('boolean')
+String.function = String('function')
+String.list = String('list')
+String.boolean = String('bool')

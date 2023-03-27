@@ -21,6 +21,7 @@ from Nodes.VarAssign import VarAssignNode
 from Nodes.Return import ReturnNode
 from Nodes.Continue import ContinueNode
 from Nodes.Break import BreakNode
+from Nodes.Import import ImportNode
 
 
 ##############
@@ -542,6 +543,37 @@ class Parser:
 
         return result.success(WhileNode(condition_value, body))
 
+#* IMPORT EXRPESSIONS
+
+    def import_expr(self) -> ParseResult:
+        result = ParseResult()
+
+        pos_start = self.current_token.pos_start.copy()
+
+        if not self.current_token.matches(TT_KEYWORD, 'import'):
+            return result.failure(InvalidSyntaxError(
+                self.current_token.pos_start, self.current_token.pos_end,
+                f"Expected 'import'"
+            ))
+        
+        result.register_advance()
+        self.advance()
+
+        if not self.current_token.type == TT_STRING:
+            return result.failure(InvalidSyntaxError(
+                self.current_token.pos_start, self.current_token.pos_end,
+                f"Expected a string"
+            ))
+        
+        file_name = self.current_token
+
+        pos_end = self.current_token.pos_end.copy()
+
+        result.register_advance()
+        self.advance()
+
+        return result.success(ImportNode(file_name, pos_start, pos_end))
+
 #* FUNCTION EXPRESSIONS
 
     def func_def(self) -> ParseResult:
@@ -577,11 +609,26 @@ class Parser:
         result.register_advance()
         self.advance()
         arg_name_tokens = []
+        arg_default_values = []
+        using_default_values = False
 
         if self.current_token.type == TT_IDENTIFIER:
             arg_name_tokens.append(self.current_token)
             result.register_advance()
             self.advance()
+
+            if self.current_token.type == TT_EQ:
+                result.register_advance()
+                self.advance()
+
+                using_default_values = True
+
+                arg_default_values.append(result.register(self.expression()))
+                if result.error: return result
+                
+            
+            else:
+                arg_default_values.append(Boolean.null)
 
             while self.current_token.type == TT_COMMA:
                 result.register_advance()
@@ -596,6 +643,23 @@ class Parser:
                 arg_name_tokens.append(self.current_token)
                 result.register_advance()
                 self.advance()
+
+                if self.current_token.type == TT_EQ:
+                    result.register_advance()
+                    self.advance()
+
+                    using_default_values = True
+
+                    arg_default_values.append(result.register(self.expression()))
+                    if result.error: return result
+            
+                else:
+                    if using_default_values:
+                        return result.failure(InvalidSyntaxError(
+                            self.current_token.pos_start, self.current_token.pos_end,
+                            f"Expected '='"
+                        ))
+                    arg_default_values.append(Boolean.null)   
             
             if self.current_token.type != TT_RPAREN:
                 return result.failure(InvalidSyntaxError(
@@ -620,6 +684,10 @@ class Parser:
         
         result.register_advance()
         self.advance()
+
+        arg_names_dict = {}
+        for i in range(len(arg_name_tokens)):
+            arg_names_dict[arg_name_tokens[i]] = arg_default_values[i]
         
         if self.current_token.type == TT_NEWLINE:
             result.register_advance()
@@ -636,7 +704,7 @@ class Parser:
             
             result.register_advance()
             self.advance()
-            return result.success(FuncDefNode(func_name_token, arg_name_tokens, body_node, False))
+            return result.success(FuncDefNode(func_name_token, arg_names_dict, body_node, False))
         else:
             body_node = result.register(self.expression())
             if result.error: return result
@@ -649,7 +717,7 @@ class Parser:
             
             result.register_advance()
             self.advance()
-            return result.success(FuncDefNode(func_name_token, arg_name_tokens, body_node, True))
+            return result.success(FuncDefNode(func_name_token, arg_names_dict, body_node, True))
         
 
     def call(self) -> ParseResult:
@@ -661,25 +729,45 @@ class Parser:
             result.register_advance()
             self.advance()
 
-            arg_nodes = []
+            arg_nodes = {
+                Boolean.null: []
+            }
 
             if self.current_token.type == TT_RPAREN:
                 result.register_advance()
                 self.advance()
             else:
-                arg_nodes.append(result.register(self.expression()))
+                arg_node = result.register(self.expression())
                 if result.error:
                     return result.failure(InvalidSyntaxError(
 						self.current_token.pos_start, self.current_token.pos_end,
 						"Expected ')', 'var', 'if', 'for', 'while', 'func', INT, FLOAT, IDENTIFIER, '+', '-', '(' or '!'"
 					))
                 
+                if self.current_token.type == TT_EQ:
+                    result.register_advance()
+                    self.advance()
+
+                    arg_nodes[arg_node] = result.register(self.expression())
+                    if result.error: return result
+                else:
+                    arg_nodes[Boolean.null].append(arg_node)
+                
                 while self.current_token.type == TT_COMMA:
                     result.register_advance()
                     self.advance()
 
-                    arg_nodes.append(result.register(self.expression()))
+                    arg_node = result.register(self.expression())
                     if result.error: return result
+
+                    if self.current_token.type == TT_EQ:
+                        result.register_advance()
+                        self.advance()
+
+                        arg_nodes[arg_node] = result.register(self.expression())
+                        if result.error: return result
+                    else:
+                        arg_nodes[Boolean.null].append(arg_node)
                 
                 if self.current_token.type != TT_RPAREN:
                     return result.failure(InvalidSyntaxError(
@@ -736,6 +824,11 @@ class Parser:
             if_expr = result.register(self.if_expr())
             if result.error: return result
             return result.success(if_expr)
+        
+        elif token.matches(TT_KEYWORD, "import"):
+            import_expr = result.register(self.import_expr())
+            if result.error: return result
+            return result.success(import_expr)
     
         elif token.matches(TT_KEYWORD, "for"):
             for_expr = result.register(self.for_expr())

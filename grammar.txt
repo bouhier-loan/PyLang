@@ -20,7 +20,10 @@ factor      : (PLUS|MINUS) factor
 
 power       : call (POW factor)*
 
-call        : atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
+call        : atom (LPAREN 
+            : (expr (COMMA expr)*)? 
+            | (IDENTIFIER EQ expr (COMMA IDENTIFIER EQ expr)*)?
+            : RPAREN)?
 
 atom        : INT|FLOAT|STRING
             : var-expr
@@ -30,6 +33,9 @@ atom        : INT|FLOAT|STRING
             : while-expr
             : list-expr
             : func-def
+            : import-expr
+
+import-expr : KEYWORD:import STRING
 
 var-expr    : IDENTIFIER (LSBRACKET (arith-expr)? (COLON arith-expr) RSBRACKET)?
 
@@ -58,6 +64,8 @@ while-expr  : KEYWORD:while expr LCBRACKET
             : expr
             | (NEWLINE statements RCBRACKET)
 
-func-def    : KEYWORD:func IDENTIFIER? LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN
+func-def    : KEYWORD:func IDENTIFIER? LPAREN 
+            : (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN
+            | (IDENTIFIER EQ expr (COMMA IDENTIFIER EQ expr)*)?
             : (EQ expr)
             | (LCBRACKET NEWLINE statements RCBRACKET)
